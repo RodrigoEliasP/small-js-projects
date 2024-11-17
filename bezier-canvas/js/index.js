@@ -108,10 +108,10 @@ if(!ctx) {
 
 ctx.translate(canvas.width/2, canvas.height/2);
 
-const pointA = { x: -100, y: 0 };
-const pointB = { x: 0, y: 100 };
-const pointC = { x: 100, y: 0 };
-const pointD = { x: 0, y: -100 };
+const pointA = { x: 0, y: -100 };
+const pointB = { x: -100, y: 0 };
+const pointC = { x: 0, y: 100 };
+const pointD = { x: 100, y: 0 };
 
 
 
@@ -125,7 +125,7 @@ const getActualMousePlacement = (e) => {
 }
 
 
-const allPoints = [pointA, pointB, pointC, pointD];
+const allPoints = [pointB, pointC, pointD, pointA];
 
 /**
  * 
@@ -184,24 +184,24 @@ const configs = {
 }
 
 function drawCubicBezierCurvePointDeCasteljau(t) {
-    const ABInterpolatedPoint_1 = calculateInterpolatedPoint(pointA, pointB, t);
-    const ADInterpolatedPoint_1 = calculateInterpolatedPoint(pointD, pointA, t);
     const BCInterpolatedPoint_1 = calculateInterpolatedPoint(pointB, pointC, t);
+    const ABInterpolatedPoint_1 = calculateInterpolatedPoint(pointA, pointB, t);
+    const CDInterpolatedPoint_1 = calculateInterpolatedPoint(pointC, pointD, t);
     const ABCInterpolatedPoint_2 = calculateInterpolatedPoint(
         ABInterpolatedPoint_1, 
         BCInterpolatedPoint_1, 
         t
     );
     const ABDInterpolatedPoint_2 = calculateInterpolatedPoint(
-        ADInterpolatedPoint_1, 
-        ABInterpolatedPoint_1, 
+        BCInterpolatedPoint_1, 
+        CDInterpolatedPoint_1, 
         t
     );
 
     const intermediatePoints = [
         ABInterpolatedPoint_1,
         BCInterpolatedPoint_1,
-        ADInterpolatedPoint_1,
+        CDInterpolatedPoint_1,
         ABCInterpolatedPoint_2,
         ABDInterpolatedPoint_2
     ]
@@ -214,8 +214,8 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
 
     const ABCDInterpolatedPoint_3 = drawInterpolatedPoint(
         ctx, 
-        ABDInterpolatedPoint_2, 
         ABCInterpolatedPoint_2, 
+        ABDInterpolatedPoint_2, 
         t, {
             color: 'cyan'
         }
@@ -245,23 +245,23 @@ function draw(t) {
         drawPoint(ctx, mousePoint, 3, { color: 'red', showLocation: false  })
     }
 
-    drawPoint(ctx, pointA);
     drawPoint(ctx, pointB);
     drawPoint(ctx, pointC);
     drawPoint(ctx, pointD);
+    drawPoint(ctx, pointA);
 
 
     drawCubicBezierCurvePointDeCasteljau(t);
 
     if(!configs.hidePrimaryLines) {
-        drawLine(ctx, pointA, pointB);
         drawLine(ctx, pointB, pointC);
-        drawLine(ctx, pointA, pointD);
+        drawLine(ctx, pointC, pointD);
+        drawLine(ctx, pointB, pointA);
     }
 
     ctx.fillStyle = 'black'; 
-    ctx.moveTo(pointD.x, pointD.y);
-    ctx.bezierCurveTo(pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y)
+    ctx.moveTo(pointA.x, pointA.y);
+    ctx.bezierCurveTo(pointB.x, pointB.y, pointC.x, pointC.y, pointD.x, pointD.y)
     ctx.stroke();
 
     
