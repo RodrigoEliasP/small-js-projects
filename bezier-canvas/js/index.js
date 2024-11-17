@@ -82,7 +82,7 @@ function clearCanvas(ctx) {
  * @param {CanvasRenderingContext2D} ctx 
  * 
  */
-function displayCatesianGrid(ctx) {
+function drawAxisLines(ctx) {
     const { width, height } = canvas;
     ctx.beginPath();
     ctx.fillStyle = "black";
@@ -169,7 +169,9 @@ canvas.addEventListener('mouseup', (e) => {
 
 const configs = {
     hideIntermediatePoints: true,
-    hideIntermediatePoints: true,
+    hideIntermediateLines: true,
+    hidePrimaryLines: true,
+    hideAxis: true,
 }
 
 
@@ -178,7 +180,9 @@ const configs = {
 function draw(t) {
     clearCanvas(ctx);
     
-    displayCatesianGrid(ctx);
+    if (!configs.hideAxis) {
+        drawAxisLines(ctx);
+    }
 
     if(mousePoint.x) {
         drawPoint(ctx, mousePoint, 3, { color: 'red', showLocation: false  })
@@ -188,9 +192,11 @@ function draw(t) {
     drawPoint(ctx, pointB);
     drawPoint(ctx, pointC);
     drawPoint(ctx, pointD);
-    drawLine(ctx, pointA, pointB);
-    drawLine(ctx, pointB, pointC);
-    drawLine(ctx, pointA, pointD);
+    if(!configs.hidePrimaryLines) {
+        drawLine(ctx, pointA, pointB);
+        drawLine(ctx, pointB, pointC);
+        drawLine(ctx, pointA, pointD);
+    }
 
     const ABInterpolatedPoint_1 = drawInterpolatedPoint(ctx, pointA, pointB, t,
         { hide: configs.hideIntermediatePoints });
