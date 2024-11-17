@@ -34,24 +34,33 @@ function drawPoint(ctx, place, radius = 5, options) {
     ctx.fill();
     ctx.stroke();
 }
+/**
+ * 
+ * @param {CartesianLocatable} a
+ * @param {CartesianLocatable} b
+ * @param {CartesianLocatable} t
+ * @returns {CartesianLocatable}
+ */
+function calculateInterpolatedPoint(a, b, t) {
+    const interpolatedX = lerp(a.x, b.x, t);
+    const interpolatedY = lerp(a.y, b.y, t);
+    
+    return { x: interpolatedX, y: interpolatedY }
+}
 
 /**
  * @param {CanvasRenderingContext2D} ctx 
  * @param {CartesianLocatable} a
  * @param {CartesianLocatable} b
  * @param {CartesianLocatable} t
- * @param {{ hide: boolean; color: string; }} cfg
+ * @param {{ color: string; }} cfg
  * @returns {CartesianLocatable} 
  * 
  */
 function drawInterpolatedPoint(ctx, a, b, t, cfg = {}) {
-    const { hide = false, color = 'black' } = cfg;
-    const interpolatedX = lerp(a.x, b.x, t);
-    const interpolatedY = lerp(a.y, b.y, t);
-    if(!hide) {
-        drawPoint(ctx, { x: interpolatedX, y: interpolatedY }, undefined, { color });
-    }
-    return { x: interpolatedX, y: interpolatedY }
+    const { color = 'black' } = cfg;
+    const interpolatedPoint = calculateInterpolatedPoint(a, b, t);
+    drawPoint(ctx, interpolatedPoint, undefined, { color });
 }
 
 
@@ -168,13 +177,61 @@ canvas.addEventListener('mouseup', (e) => {
 
 
 const configs = {
-    hideIntermediatePoints: true,
+    hideIntermediatePoints: false,
     hideIntermediateLines: true,
     hidePrimaryLines: true,
     hideAxis: true,
 }
 
+function drawCubicBezierCurvePointDeCasteljau(t) {
+    const ABInterpolatedPoint_1 = calculateInterpolatedPoint(pointA, pointB, t);
+    const ADInterpolatedPoint_1 = calculateInterpolatedPoint(pointD, pointA, t);
+    const BCInterpolatedPoint_1 = calculateInterpolatedPoint(pointB, pointC, t);
+    const ABCInterpolatedPoint_2 = calculateInterpolatedPoint(
+        ABInterpolatedPoint_1, 
+        BCInterpolatedPoint_1, 
+        t
+    );
+    const ABDInterpolatedPoint_2 = calculateInterpolatedPoint(
+        ADInterpolatedPoint_1, 
+        ABInterpolatedPoint_1, 
+        t
+    );
 
+    const intermediatePoints = [
+        ABInterpolatedPoint_1,
+        BCInterpolatedPoint_1,
+        ADInterpolatedPoint_1,
+        ABCInterpolatedPoint_2,
+        ABDInterpolatedPoint_2
+    ]
+
+    if(!configs.hideIntermediatePoints) {
+        intermediatePoints.forEach((p, i) => {
+            drawPoint(ctx, p, undefined, [3,4].includes(i) ? { color: 'green' } : undefined)
+        })
+    }
+
+    const ABCDInterpolatedPoint_3 = drawInterpolatedPoint(
+        ctx, 
+        ABDInterpolatedPoint_2, 
+        ABCInterpolatedPoint_2, 
+        t, {
+            color: 'cyan'
+        }
+    );
+    
+    if(!configs.hideIntermediateLines) {
+
+        drawLine(ctx, ABInterpolatedPoint_1, BCInterpolatedPoint_1);
+        drawLine(ctx, ABInterpolatedPoint_1, ADInterpolatedPoint_1);
+        drawLine(ctx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
+    }
+}
+
+function drawCubicBezierCurvePointSingleFunction(t) {
+
+}
 
 
 function draw(t) {
@@ -192,48 +249,14 @@ function draw(t) {
     drawPoint(ctx, pointB);
     drawPoint(ctx, pointC);
     drawPoint(ctx, pointD);
+
+
+    drawCubicBezierCurvePointDeCasteljau(t);
+
     if(!configs.hidePrimaryLines) {
         drawLine(ctx, pointA, pointB);
         drawLine(ctx, pointB, pointC);
         drawLine(ctx, pointA, pointD);
-    }
-
-    const ABInterpolatedPoint_1 = drawInterpolatedPoint(ctx, pointA, pointB, t,
-        { hide: configs.hideIntermediatePoints });
-    const BCInterpolatedPoint_1 = drawInterpolatedPoint(ctx, pointB, pointC, t,
-        { hide: configs.hideIntermediatePoints });
-    const ADInterpolatedPoint_1 = drawInterpolatedPoint(ctx, pointD, pointA, t,
-        { hide: configs.hideIntermediatePoints });
-    const ABCInterpolatedPoint_2 = drawInterpolatedPoint(
-        ctx, 
-        ABInterpolatedPoint_1, 
-        BCInterpolatedPoint_1, 
-        t,
-        { hide: configs.hideIntermediatePoints }
-    );
-    const ABDInterpolatedPoint_2 = drawInterpolatedPoint(
-        ctx, 
-        ADInterpolatedPoint_1, 
-        ABInterpolatedPoint_1, 
-        t,
-        { hide: configs.hideIntermediatePoints }
-    );
-    const ABCDInterpolatedPoint_3 = drawInterpolatedPoint(
-        ctx, 
-        ABDInterpolatedPoint_2, 
-        ABCInterpolatedPoint_2, 
-        t, {
-            color: 'cyan'
-        }
-    );
-    
-    
-    
-    if(!configs.hideIntermediatePoints) {
-
-        drawLine(ctx, ABInterpolatedPoint_1, BCInterpolatedPoint_1);
-        drawLine(ctx, ABInterpolatedPoint_1, ADInterpolatedPoint_1);
-        drawLine(ctx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
     }
 
     ctx.fillStyle = 'black'; 
