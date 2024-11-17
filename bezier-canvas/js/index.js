@@ -230,7 +230,10 @@ function draw(t) {
         drawLine(ctx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
     }
 
-
+    ctx.fillStyle = 'black'; 
+    ctx.moveTo(pointD.x, pointD.y);
+    ctx.bezierCurveTo(pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y)
+    ctx.stroke();
 
     
 
