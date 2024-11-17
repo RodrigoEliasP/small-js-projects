@@ -4,9 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="./js/index.js" defer></script>
+    <script src="./js/index.mjs" type="module" defer></script>
+    <script src="./js/modules/configs.mjs" type="module" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-around">
     <canvas style="border: 1px solid black;" id="canvas" width="500" height="400"></canvas>
+    <div class="bg-white shadow-md rounded-md p-6 w-96">
+        <h1 class="text-lg font-semibold text-gray-800 mb-4">Config Switcher</h1>
+        <form class="space-y-4">
+            <div class="flex items-center justify-between">
+                <label class="text-gray-700" for="showIntermediatePoints">Show Intermediate Points</label>
+                <input type="checkbox" id="showIntermediatePoints" class="toggle-input">
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="text-gray-700" for="showIntermediateLines">Show Intermediate Lines</label>
+                <input type="checkbox" id="showIntermediateLines" class="toggle-input">
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="text-gray-700" for="showPrimaryLines">Show Primary Lines</label>
+                <input type="checkbox" id="showPrimaryLines" class="toggle-input">
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="text-gray-700" for="showAxis">Show Axis</label>
+                <input type="checkbox" id="showAxis" class="toggle-input">
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="text-gray-700" for="showCoordinates">Show Coordinates</label>
+                <input type="checkbox" id="showCoordinates" class="toggle-input">
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="text-gray-700" for="showPointerIndicator">Show Pointer Indicator</label>
+                <input type="checkbox" id="showPointerIndicator" class="toggle-input">
+            </div>
+        </form>
+    </div>
 </body>
 </html>

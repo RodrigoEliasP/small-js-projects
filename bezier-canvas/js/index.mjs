@@ -1,3 +1,4 @@
+import { configs } from "./modules/configs.mjs"
 /**
  * @type HTMLCanvasElement
  */
@@ -6,6 +7,8 @@ const canvas = document.querySelector('#canvas');
 const ctx = canvas.getContext('2d');
 
 const animationMs = 10;
+
+const { flags } = configs;
 
 
 function lerp(a, b, c) {
@@ -118,9 +121,13 @@ const pointD = { x: 100, y: 0 };
 let mousePoint = {};
 
 const getActualMousePlacement = (e) => {
+    console.log(e);
+    let rect = canvas.getBoundingClientRect();
+    console.log(rect);
+    const padding = -8;
     const { width, height } = canvas;
-    const { clientX, clientY } = e;
-    const [ actualX, actualY ] = [clientX - (width / 2), clientY - (height / 2)];
+    const { clientX: canvasX, clientY: canvasY } = e;
+    const [ actualX, actualY ] = [canvasX - ((width / 2) + rect.left + padding), canvasY - ((height / 2) + rect.top + padding)];
     return { x: actualX, y: actualY };
 }
 
@@ -175,14 +182,6 @@ canvas.addEventListener('mouseup', (e) => {
     draggingPoint = undefined;
 });
 
-
-const configs = {
-    showIntermediatePoints: false,
-    showIntermediateLines: false,
-    showPrimaryLines: false,
-    showAxis: false,
-}
-
 function drawCubicBezierCurvePointDeCasteljau(t) {
     const BCInterpolatedPoint_1 = calculateInterpolatedPoint(pointB, pointC, t);
     const ABInterpolatedPoint_1 = calculateInterpolatedPoint(pointA, pointB, t);
@@ -206,7 +205,7 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
         ABDInterpolatedPoint_2
     ]
 
-    if(configs.showIntermediatePoints) {
+    if(flags.showIntermediatePoints) {
         intermediatePoints.forEach((p, i) => {
             drawPoint(ctx, p, undefined, [3,4].includes(i) ? { color: 'green' } : undefined)
         })
@@ -221,10 +220,10 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
         }
     );
     
-    if(configs.showIntermediateLines) {
+    if(flags.showIntermediateLines) {
 
         drawLine(ctx, ABInterpolatedPoint_1, BCInterpolatedPoint_1);
-        drawLine(ctx, ABInterpolatedPoint_1, ADInterpolatedPoint_1);
+        drawLine(ctx, BCInterpolatedPoint_1, CDInterpolatedPoint_1);
         drawLine(ctx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
     }
 }
@@ -267,11 +266,11 @@ function drawCubicBezierCurvePointSingleFunction(t) {
 function draw(t) {
     clearCanvas(ctx);
     
-    if (configs.showAxis) {
+    if (flags.showAxis) {
         drawAxisLines(ctx);
     }
 
-    if(mousePoint.x) {
+    if(mousePoint.x && flags.showPointerIndicator) {
         drawPoint(ctx, mousePoint, 3, { color: 'red', showLocation: false  })
     }
 
@@ -281,10 +280,11 @@ function draw(t) {
     drawPoint(ctx, pointA);
 
 
-    //drawCubicBezierCurvePointDeCasteljau(t);
-    drawCubicBezierCurvePointSingleFunction(t);
+    drawCubicBezierCurvePointDeCasteljau(t);
+    //drawCubicBezierCurvePointSingleFunction(t);
 
-    if(configs.showPrimaryLines) {
+
+    if(flags.showPrimaryLines) {
         drawLine(ctx, pointB, pointC);
         drawLine(ctx, pointC, pointD);
         drawLine(ctx, pointB, pointA);
