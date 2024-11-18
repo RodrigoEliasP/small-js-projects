@@ -6,7 +6,7 @@ const canvas = document.querySelector('#canvas');
 
 const ctx = canvas.getContext('2d');
 
-const animationMs = 10;
+
 
 const { flags } = configs;
 
@@ -27,7 +27,7 @@ function lerp(a, b, c) {
  */
 function drawPoint(ctx, place, radius = 5, options) {
     const { x, y } =  place;
-    const { color = "black", showLocation = true} = options ?? {};
+    const { color = "black", showLocation = flags.showCoordinates} = options ?? {};
     ctx.fillStyle = 'black';
     if(showLocation) 
         ctx.fillText(`(${x.toFixed(2)},${y.toFixed(2)})`, x - radius * 2.3, y - 10);
@@ -121,9 +121,7 @@ const pointD = { x: 100, y: 0 };
 let mousePoint = {};
 
 const getActualMousePlacement = (e) => {
-    console.log(e);
     let rect = canvas.getBoundingClientRect();
-    console.log(rect);
     const padding = -8;
     const { width, height } = canvas;
     const { clientX: canvasX, clientY: canvasY } = e;
@@ -262,6 +260,16 @@ function drawCubicBezierCurvePointSingleFunction(t) {
     drawPoint(ctx, pointToDraw, undefined, { color: 'blue' });
 }
 
+function drawBezierCurve() {
+    if(!flags.showCurvePath) {
+        return
+    }
+    ctx.fillStyle = 'black'; 
+    ctx.moveTo(pointA.x, pointA.y);
+    ctx.bezierCurveTo(pointB.x, pointB.y, pointC.x, pointC.y, pointD.x, pointD.y)
+    ctx.stroke();
+}
+
 
 function draw(t) {
     clearCanvas(ctx);
@@ -290,23 +298,30 @@ function draw(t) {
         drawLine(ctx, pointB, pointA);
     }
 
-    ctx.fillStyle = 'black'; 
-    ctx.moveTo(pointA.x, pointA.y);
-    ctx.bezierCurveTo(pointB.x, pointB.y, pointC.x, pointC.y, pointD.x, pointD.y)
-    ctx.stroke();
-
-    
-
+    drawBezierCurve();
 }
 let range = 0;
 let going = true;
 let step = 1;
-setInterval(() => {
+
+let animationSpeedCache = configs.animationSpeed;
+
+function main( ) {
+    if(animationSpeedCache !== configs.animationSpeed) {
+        animationSpeedCache = configs.animationSpeed;
+        range = 0;
+        going = true;
+        step = 1;
+    }
+    const maxRange = 100 * (2.25 - animationSpeedCache);
     range = range + (step * (going ? 1 : -1) );
     if(going) {
-        going = range !== 100;
+        going = range !== maxRange;
     } else {
         going = range === 0;
     }
-    requestAnimationFrame(() => draw(range/100))
-}, animationMs)
+    requestAnimationFrame(() => draw(range / maxRange))
+}
+
+intervalCode = setInterval(main, 1)
+
