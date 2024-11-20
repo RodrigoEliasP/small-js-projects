@@ -4,4 +4,4 @@ This is a project with a interactive Bézier, curve. it is simple, you cam play 
 
 # Running
 
-As it use module, it isn't possible to run it without serving it. I am looking ahead to host it somewhere, but for now, i recommend opening it with vscode live-server
+As it use module, it isn't possible to run it without serving it. I am looking ahead to host it somewhere, but for now, opening it with vscode live-server its an easy way to run it

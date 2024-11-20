@@ -8,7 +8,13 @@ export const configs = {
         showPointerIndicator: false,
         showCurvePath: true,
     },
-    animationSpeed: 1
+    /**
+     * @type {{ type: 'man', moment: number; } | { type: 'auto', speed: number; }}
+     */
+    animation: {
+        type: 'auto',
+        speed: 1
+    }
 };
 
 /**
@@ -22,14 +28,49 @@ export function toggleConfig(key) {
 /**
  * @type {HTMLInputElement}
  */
-const rangeInput = document.querySelector("#rangeInput");
-rangeInput.value = 1;
-const rangeValue = document.querySelector("#rangeValue");
-rangeValue.innerHTML = (1).toFixed(2);
-rangeInput.addEventListener('input', () => {
-    rangeValue.textContent = Number(rangeInput.value).toFixed(2);
-    configs.animationSpeed = rangeInput.value;
+const rangeInput = document.querySelector("#animationRange");
+
+const rangeValue = document.querySelector("#animationRange");
+
+/**
+ * 
+ * @param {'man' | 'auto'} mode 
+ */
+function setAnimationMode(mode) {
+    const values = {
+        auto: {
+            defaultValue: 1,
+            stepSize: 0.25,
+            handler: () => {
+                rangeValue.textContent = Number(rangeInput.value).toFixed(2);
+                configs.animation.speed = rangeInput.value;
+            }
+        }, 
+        man: {
+            defaultValue: 0,
+            stepSize: 0.01,
+            handler: () => {
+                rangeValue.textContent = Number(rangeInput.value).toFixed(2);
+                configs.animation.moment = rangeInput.value;
+            }
+        }
+    }
+    const { defaultValue, handler, stepSize } = values[mode];
+    rangeInput.value = defaultValue;
+    rangeInput.step = stepSize;
+    rangeValue.innerHTML = (defaultValue).toFixed(2);
+    configs.animation.type = mode;
+    rangeInput.addEventListener('input', handler);
+}
+
+/**
+ * @type {HTMLSelectElement}
+ */
+const animationMode = document.querySelector("#animationMode");
+animationMode.addEventListener('change', (e) => {
+    setAnimationMode(e.target.value);
 })
+
 Object.keys(configs.flags).forEach(key => {
 
     const el = document.querySelector(`#${key}`);

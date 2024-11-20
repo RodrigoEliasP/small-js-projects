@@ -1,10 +1,12 @@
 import { configs } from "./modules/configs.mjs"
+import { SceneController } from "./modules/sceneController.mjs";
 /**
  * @type HTMLCanvasElement
  */
-const canvas = document.querySelector('#canvas');
+const mainCanvas = document.querySelector('#main-canvas');
 
-const ctx = canvas.getContext('2d');
+
+const ctx = mainCanvas.getContext('2d');
 
 
 
@@ -86,7 +88,7 @@ function drawLine(ctx, a, b) {
  */
 function clearCanvas(ctx) {
     ctx.fillStyle = 'white';
-    ctx.fillRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
+    ctx.fillRect(-mainCanvas.width/2, -mainCanvas.height/2, mainCanvas.width, mainCanvas.height)
 }
 
 /**
@@ -95,7 +97,7 @@ function clearCanvas(ctx) {
  * 
  */
 function drawAxisLines(ctx) {
-    const { width, height } = canvas;
+    const { width, height } = mainCanvas;
     ctx.beginPath();
     ctx.fillStyle = "black";
     ctx.moveTo(-(width / 2), 0);
@@ -109,7 +111,7 @@ if(!ctx) {
     alert('this browser does not support canvas');
 }
 
-ctx.translate(canvas.width/2, canvas.height/2);
+ctx.translate(mainCanvas.width/2, mainCanvas.height/2);
 
 const pointA = { x: 0, y: -100 };
 const pointB = { x: -100, y: 0 };
@@ -121,9 +123,9 @@ const pointD = { x: 100, y: 0 };
 let mousePoint = {};
 
 const getActualMousePlacement = (e) => {
-    let rect = canvas.getBoundingClientRect();
+    let rect = mainCanvas.getBoundingClientRect();
     const padding = -8;
-    const { width, height } = canvas;
+    const { width, height } = mainCanvas;
     const { clientX: canvasX, clientY: canvasY } = e;
     const [ actualX, actualY ] = [canvasX - ((width / 2) + rect.left + padding), canvasY - ((height / 2) + rect.top + padding)];
     return { x: actualX, y: actualY };
@@ -153,7 +155,7 @@ function findPointColiding(points, place) {
 
 let draggingPoint = undefined;
 
-canvas.addEventListener('mousemove', (e)  => {
+mainCanvas.addEventListener('mousemove', (e)  => {
     const actualPlacement = getActualMousePlacement(e);
     mousePoint.x = actualPlacement.x - 9;
     mousePoint.y = actualPlacement.y - 9;
@@ -165,7 +167,7 @@ canvas.addEventListener('mousemove', (e)  => {
     
 })
 
-canvas.addEventListener('mousedown', (e) => {
+mainCanvas.addEventListener('mousedown', (e) => {
     const placement = getActualMousePlacement(e);
 
     let pointColiding = findPointColiding(allPoints, placement);
@@ -176,7 +178,7 @@ canvas.addEventListener('mousedown', (e) => {
     }
 });
 
-canvas.addEventListener('mouseup', (e) => {
+mainCanvas.addEventListener('mouseup', (e) => {
     draggingPoint = undefined;
 });
 
@@ -306,22 +308,14 @@ let step = 1;
 
 let animationSpeedCache = configs.animationSpeed;
 
-function main( ) {
-    if(animationSpeedCache !== configs.animationSpeed) {
-        animationSpeedCache = configs.animationSpeed;
-        range = 0;
-        going = true;
-        step = 1;
-    }
-    const maxRange = 100 * (2.25 - animationSpeedCache);
-    range = range + (step * (going ? 1 : -1) );
-    if(going) {
-        going = range !== maxRange;
-    } else {
-        going = range === 0;
-    }
-    requestAnimationFrame(() => draw(range / maxRange))
-}
+const animationController = new SceneController(configs);
 
-intervalCode = setInterval(main, 1)
+function main() {
+
+    const t = animationController.getAnimationMoment(configs.animation.type);
+    console.log(configs.animation.type);
+    
+    requestAnimationFrame(() => draw(t))
+}
+setInterval(main, 1)
 
