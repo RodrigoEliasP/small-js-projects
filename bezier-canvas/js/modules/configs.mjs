@@ -28,47 +28,70 @@ export function toggleConfig(key) {
 /**
  * @type {HTMLInputElement}
  */
-const rangeInput = document.querySelector("#animationRange");
+const animationRange = document.querySelector("#animationRange");
 
-const rangeValue = document.querySelector("#animationRange");
+/**
+ * @type {HTMLSpanElement}
+ */
+const rangeValue = document.querySelector("#rangeValue");
+/**
+ * @type {HTMLSpanElement}
+ */
+const rangeUnit = document.querySelector("#rangeUnit");
+
 
 /**
  * 
  * @param {'man' | 'auto'} mode 
  */
-function setAnimationMode(mode) {
+function changeAnimationMode(mode) {
     const values = {
         auto: {
             defaultValue: 1,
+            min: 0.25,
+            unit: 'X',
+            max: 2,
             stepSize: 0.25,
             handler: () => {
-                rangeValue.textContent = Number(rangeInput.value).toFixed(2);
-                configs.animation.speed = rangeInput.value;
+                rangeValue.textContent = Number(animationRange.value).toFixed(2);
+                configs.animation = { ...configs.animation, speed: animationRange.value };
             }
         }, 
         man: {
-            defaultValue: 0,
-            stepSize: 0.01,
+            defaultValue: 50,
+            unit: '%',
+            min: 0,
+            max: 100,
+            stepSize: 1,
             handler: () => {
-                rangeValue.textContent = Number(rangeInput.value).toFixed(2);
-                configs.animation.displacement = rangeInput.value;
+                rangeValue.textContent = animationRange.value
+                configs.animation = { ...configs.animation, displacement: animationRange.value };
             }
         }
     }
-    const { defaultValue, handler, stepSize } = values[mode];
-    rangeInput.value = defaultValue;
-    rangeInput.step = stepSize;
-    rangeValue.innerHTML = (defaultValue).toFixed(2);
+    const { defaultValue, handler, stepSize, min, max, unit } = values[mode];
+    animationRange.step = stepSize;
+    animationRange.min = min;
+    animationRange.max = max;
+    animationRange.value = defaultValue;
+
+    rangeUnit.textContent = unit;
+
+    animationMode.value = mode;
     configs.animation.type = mode;
-    rangeInput.addEventListener('input', handler);
+    handler();
+    animationRange.addEventListener('input', handler);
 }
 
 /**
  * @type {HTMLSelectElement}
  */
 const animationMode = document.querySelector("#animationMode");
+
+changeAnimationMode('auto');
+
 animationMode.addEventListener('change', (e) => {
-    setAnimationMode(e.target.value);
+    changeAnimationMode(e.target.value);
 })
 
 Object.keys(configs.flags).forEach(key => {
