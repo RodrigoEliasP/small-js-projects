@@ -4,4 +4,9 @@ This is a project with a interactive Bézier, curve. it is simple, you cam play 
 
 # Running
 
-As it use module, it isn't possible to run it without serving it. I am looking ahead to host it somewhere, but for now, opening it with vscode live-server its an easy way to run it
+As it use module, it isn't possible to run it without serving it.
+to run it just build it with docker using
+
+`sudo docker compose up --build`
+
+or anything that can setup a simple http server like live server for vscode
