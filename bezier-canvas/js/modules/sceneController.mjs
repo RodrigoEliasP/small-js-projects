@@ -15,7 +15,7 @@ export class SceneController {
     #changeModeIfNecessary(type) {
         if(this.animationCache?.type !== type) {
             this.animationCache = { ...this.configs.animation };
-            this.moment = 0;
+            this.displacement = 0;
             this.going = true;
             this.step = 1;
         }
@@ -24,23 +24,23 @@ export class SceneController {
      * 
      *  @param {'auto' | 'man'} type 
      */
-    getAnimationMoment(type) {
+    getAnimationDisplacement(type) {
         this.#changeModeIfNecessary(type);
         let t = 0;
         switch (type) {
             case 'man':
-                t = this.configs.animation.moment;
+                t = this.configs.animation.displacement;
             break;
 
             case 'auto':
                 const maxRange = 100 * (2.25 - this.animationCache.speed);
-                this.moment = this.moment + (this.step * (this.going ? 1 : -1) );
+                this.displacement = this.displacement + (this.step * (this.going ? 1 : -1) );
                 if(this.going) {
-                    this.going = this.moment !== maxRange;
+                    this.going = this.displacement !== maxRange;
                 } else {
-                    this.going = this.moment === 0;
+                    this.going = this.displacement === 0;
                 }
-                t = this.moment / maxRange;
+                t = this.displacement / maxRange;
             break;
             default:
                 break;

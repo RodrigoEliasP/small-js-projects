@@ -9,7 +9,7 @@ export const configs = {
         showCurvePath: true,
     },
     /**
-     * @type {{ type: 'man', moment: number; } | { type: 'auto', speed: number; }}
+     * @type {{ type: 'man', displacement: number; } | { type: 'auto', speed: number; }}
      */
     animation: {
         type: 'auto',
@@ -51,7 +51,7 @@ function setAnimationMode(mode) {
             stepSize: 0.01,
             handler: () => {
                 rangeValue.textContent = Number(rangeInput.value).toFixed(2);
-                configs.animation.moment = rangeInput.value;
+                configs.animation.displacement = rangeInput.value;
             }
         }
     }
