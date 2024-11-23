@@ -4,16 +4,12 @@ export class SceneController {
      * @param { typeof import('./configs.mjs').configs } configs
      */
     constructor(configs) {
-        this.type = configs.animation.type;
         this.configs = configs;
-        this.#changeModeIfNecessary(this.type);
+        this.#changeModeIfNecessary();
     }
-    /**
-     * 
-     *  @param {'auto' | 'man'} type 
-     */
-    #changeModeIfNecessary(type) {
-        if(this.animationCache?.type !== type) {
+
+    #changeModeIfNecessary() {
+        if(this.animationCache !== this.configs.animation) {
             this.animationCache = { ...this.configs.animation };
             this.displacement = 0;
             this.going = true;
@@ -24,16 +20,16 @@ export class SceneController {
      * 
      *  @param {'auto' | 'man'} type 
      */
-    getAnimationDisplacement(type) {
-        this.#changeModeIfNecessary(type);
+    getAnimationDisplacement() {
+        this.#changeModeIfNecessary();
         let t = 0;
-        switch (type) {
+        switch (this.configs.animation.type) {
             case 'man':
                 t = this.configs.animation.displacement;
             break;
 
             case 'auto':
-                const maxRange = 100 * (2.25 - this.animationCache.speed);
+                const maxRange = 100 * (2.25 - this.configs.animation.speed);
                 this.displacement = this.displacement + (this.step * (this.going ? 1 : -1) );
                 if(this.going) {
                     this.going = this.displacement !== maxRange;

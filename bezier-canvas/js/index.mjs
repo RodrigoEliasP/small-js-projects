@@ -316,5 +316,5 @@ function main() {
     
     requestAnimationFrame(() => draw(t))
 }
-setInterval(main, 1)
+setInterval(main, 5)
 

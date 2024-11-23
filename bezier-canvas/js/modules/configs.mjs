@@ -43,7 +43,7 @@ function setAnimationMode(mode) {
             stepSize: 0.25,
             handler: () => {
                 rangeValue.textContent = Number(rangeInput.value).toFixed(2);
-                configs.animation.speed = rangeInput.value;
+                configs.animation = { ...configs.animation, speed: rangeValue.value };
             }
         }, 
         man: {
@@ -51,7 +51,7 @@ function setAnimationMode(mode) {
             stepSize: 0.01,
             handler: () => {
                 rangeValue.textContent = Number(rangeInput.value).toFixed(2);
-                configs.animation.displacement = rangeInput.value;
+                configs.animation = { ...configs.animation, displacement: rangeValue.value };
             }
         }
     }
@@ -67,6 +67,9 @@ function setAnimationMode(mode) {
  * @type {HTMLSelectElement}
  */
 const animationMode = document.querySelector("#animationMode");
+
+setAnimationMode('auto');
+
 animationMode.addEventListener('change', (e) => {
     setAnimationMode(e.target.value);
 })
