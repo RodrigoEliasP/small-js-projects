@@ -313,7 +313,6 @@ const animationController = new SceneController(configs);
 function main() {
 
     const t = animationController.getAnimationMoment(configs.animation.type);
-    console.log(configs.animation.type);
     
     requestAnimationFrame(() => draw(t))
 }

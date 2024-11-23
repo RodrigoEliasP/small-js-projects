@@ -202,7 +202,6 @@ function animate(time) {
       )
     );
   });
-  console.log(bestCar);
 
   carCanvas.height = window.innerHeight;
   networkCanvas.height = window.innerHeight;
