@@ -1,0 +1,9 @@
+services:
+ nginx:
+    container_name: bcanvas
+    build: .
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/mime.types:/etc/nginx/mime.types:ro
+    ports:
+      - "8080:80" 
