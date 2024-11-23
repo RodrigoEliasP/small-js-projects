@@ -1,9 +1,12 @@
 services:
  nginx:
     container_name: bcanvas
-    build: .
+    image: nginx:latest
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/mime.types:/etc/nginx/mime.types:ro
+      - ./index.html:/srv/www/index.html
+      -  ./js:/srv/www/js
+      - ./assets:/srv/www/assets
     ports:
       - "8080:80" 
