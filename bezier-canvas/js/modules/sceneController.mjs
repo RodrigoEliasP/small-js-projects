@@ -9,8 +9,8 @@ export class SceneController {
     }
 
     #changeModeIfNecessary() {
-        if(this.animationCache !== this.configs.animation) {
-            this.animationCache = { ...this.configs.animation };
+        if(this.animationConfigsReference !== this.configs.animation) {
+            this.animationConfigsReference = this.configs.animation;
             this.displacement = 0;
             this.going = true;
             this.step = 1;
@@ -25,7 +25,7 @@ export class SceneController {
         let t = 0;
         switch (this.configs.animation.type) {
             case 'man':
-                t = this.configs.animation.displacement;
+                t = this.configs.animation.displacement / 100;
             break;
 
             case 'auto':
