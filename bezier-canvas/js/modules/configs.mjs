@@ -6,6 +6,7 @@ export const configs = {
         showAxis: false,
         showCoordinates: false,
         showPointerIndicator: false,
+        showBernstein: false,
         showCurvePath: true,
     },
     /**
