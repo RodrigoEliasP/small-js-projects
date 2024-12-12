@@ -236,10 +236,14 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
  * @param {number} c 
  * @param {number} d 
  * @param {number} t 
- * @returns 
+ * @returns {{ total: number; decomposedMonomials: { [ x in `${'a'|'b'|'c'|'d'}${'Monomial'}`]: number } }}
  */
 function cubicLerp(a, b, c, d, t) {
-    return ((1 - t) ** 3) * a + 3 * ((1 - t) ** 2) * t * b + 3 * (1 - t) * ( t ** 2 ) * c  + t ** 3 * d;
+    const aMonomial = ((1 - t) ** 3) * a;
+    const bMonomial = 3 * ((1 - t) ** 2) * t * b;
+    const cMonomial = 3 * (1 - t) * ( t ** 2 ) * c;   
+    const dMonomial = t ** 3 * d;
+    return { total: aMonomial + bMonomial + cMonomial + dMonomial, decomposedMonomials: { aMonomial, bMonomial, cMonomial, dMonomial  } };
 }
 
 /**
@@ -254,7 +258,13 @@ function cubicLerp(a, b, c, d, t) {
 function calculateCubicBezierCurvePoint(a, b, c, d, t) {
     const x = cubicLerp(a.x, b.x, c.x, d.x, t);
     const y = cubicLerp(a.y, b.y, c.y, d.y, t);
-    return { x, y }
+    return { x: x.total, y: y.total }
+}
+
+function drawBernsteinVectors(ctx) {
+    const pointsX = calculateCubicBezierCurvePoint(pointA.x, pointB.x, pointC.x, pointD.x);
+    const pointsY = calculateCubicBezierCurvePoint(pointA.y, pointB.y, pointC.y, pointD.y);
+
 }
 
 function drawCubicBezierCurvePointSingleFunction(t) {
@@ -292,7 +302,9 @@ function draw(t) {
 
     drawCubicBezierCurvePointDeCasteljau(t);
     //drawCubicBezierCurvePointSingleFunction(t);
-
+    if(flags.showBernstein) {
+        drawBernsteinVectors(ctx);
+    }
 
     if(flags.showPrimaryLines) {
         drawLine(ctx, pointB, pointC);
