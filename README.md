@@ -1,6 +1,6 @@
 # This is a repository with various small projects
 
-Each project will be documented separately with a readme containing running instructions on its respecitve folder
+Each project will be documented separately with a readme, all of them containing running instructions on its respective folder
 
 # Projects
 
