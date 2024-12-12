@@ -13,12 +13,13 @@ const ctx = mainCanvas.getContext('2d');
 const { flags } = configs;
 
 
-function lerp(a, b, c) {
-    return a + c * (b  - a);
+function lerp(a, b, t) {
+    return a + t * (b  - a);
 }
 
 /**
  * @typedef {{ x: number; y: number;}} CartesianLocatable
+ * @typedef { { [ x in `${'a'|'b'|'c'|'d'}${'Monomial'}`]: number } } DecomposedMonomials
  */
 
 /**
@@ -113,10 +114,10 @@ if(!ctx) {
 
 ctx.translate(mainCanvas.width/2, mainCanvas.height/2);
 
-const pointA = { x: 0, y: -100 };
-const pointB = { x: -100, y: 0 };
-const pointC = { x: 0, y: 100 };
-const pointD = { x: 100, y: 0 };
+const pointA = { x: 0, y: -100, label: 'A' };
+const pointB = { x: -100, y: 0, label: 'B' };
+const pointC = { x: 0, y: 100, label: 'C' };
+const pointD = { x: 100, y: 0, label: 'D' };
 
 
 
@@ -132,7 +133,7 @@ const getActualMousePlacement = (e) => {
 }
 
 
-const allPoints = [pointB, pointC, pointD, pointA];
+const allPoints = [pointA, pointB, pointC, pointD];
 
 /**
  * 
@@ -236,7 +237,7 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
  * @param {number} c 
  * @param {number} d 
  * @param {number} t 
- * @returns {{ total: number; decomposedMonomials: { [ x in `${'a'|'b'|'c'|'d'}${'Monomial'}`]: number } }}
+ * @returns {{ total: number; decomposedMonomials: DecomposedMonomials }}
  */
 function cubicLerp(a, b, c, d, t) {
     const aMonomial = ((1 - t) ** 3) * a;
@@ -253,17 +254,80 @@ function cubicLerp(a, b, c, d, t) {
  * @param {CartesianLocatable} c 
  * @param {CartesianLocatable} d 
  * @param {number} t 
- * @returns {CartesianLocatable}
+ * @returns {CartesianLocatable & { monomialSum: { a: CartesianLocatable, b: CartesianLocatable, c: CartesianLocatable, d: CartesianLocatable }}}
  */
 function calculateCubicBezierCurvePoint(a, b, c, d, t) {
     const x = cubicLerp(a.x, b.x, c.x, d.x, t);
     const y = cubicLerp(a.y, b.y, c.y, d.y, t);
-    return { x: x.total, y: y.total }
+    return { 
+        x: x.total, 
+        y: y.total, 
+        monomialSum: { 
+            a: {
+                x: x.decomposedMonomials.aMonomial,
+                y: y.decomposedMonomials.aMonomial
+            }, 
+            b: { 
+                x: x.decomposedMonomials.bMonomial,
+                y: y.decomposedMonomials.bMonomial
+            }, 
+            c: { 
+                x: x.decomposedMonomials.cMonomial,
+                y: y.decomposedMonomials.cMonomial
+            }, 
+            d: {
+                x: x.decomposedMonomials.dMonomial, 
+                y: y.decomposedMonomials.dMonomial
+            }  
+        } 
+    }
+}
+/**
+ * 
+ * @param  {...CartesianLocatable} points 
+ */
+function getTheClosestPointToNPoints(...points) {
+    const totalPoints = points.length;
+
+    return points.reduce((acc, cur) => { 
+        acc.x += cur.x / totalPoints;
+        acc.y += cur.y / totalPoints;
+        return acc;
+    }, {x: 0, y: 0})
 }
 
-function drawBernsteinVectors(ctx) {
-    const pointsX = calculateCubicBezierCurvePoint(pointA.x, pointB.x, pointC.x, pointD.x);
-    const pointsY = calculateCubicBezierCurvePoint(pointA.y, pointB.y, pointC.y, pointD.y);
+/**
+ * 
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {number} t
+ */
+function drawBernsteinVectors(ctx, t) {
+    const points = calculateCubicBezierCurvePoint(...allPoints, t);
+    const closestPoint = getTheClosestPointToNPoints(...allPoints);
+
+
+    drawPoint(ctx, closestPoint, 2, 'green');
+
+
+    allPoints.forEach((point) => {
+        ctx.moveTo(closestPoint.x, closestPoint.y);
+        /**
+         * @type {'a' | 'b' | 'c' | 'd' }
+         */
+        const pointLabel = point.label.toLowerCase();
+        const m = points.monomialSum[pointLabel]
+        const monomialSum = (m.x + m.y)/2;
+
+        console.log(point.x, closestPoint.x, monomialSum, point.label);
+        const endPoint = { 
+            x: lerp(point.x, closestPoint.x, monomialSum),
+            y: lerp(point.y, closestPoint.y,  monomialSum)
+        }
+        ctx.fillStyle = 'red';
+        ctx.lineTo(endPoint.x, endPoint.y);
+        ctx.stroke();
+    })
+    
 
 }
 
@@ -303,7 +367,7 @@ function draw(t) {
     drawCubicBezierCurvePointDeCasteljau(t);
     //drawCubicBezierCurvePointSingleFunction(t);
     if(flags.showBernstein) {
-        drawBernsteinVectors(ctx);
+        drawBernsteinVectors(ctx, t);
     }
 
     if(flags.showPrimaryLines) {
