@@ -8,6 +8,7 @@ export const configs = {
         showPointerIndicator: false,
         showBernstein: false,
         showCurvePath: true,
+        showLabels: false,
     },
     /**
      * @type {{ type: 'man', displacement: number; } | { type: 'auto', speed: number; }}
@@ -98,6 +99,9 @@ animationMode.addEventListener('change', (e) => {
 Object.keys(configs.flags).forEach(key => {
 
     const el = document.querySelector(`#${key}`);
+    if (!el) {
+        throw new Error(`Flag ${key} not found`);
+    }
     el.checked = configs.flags[key];
     el.addEventListener('click', ()=>  toggleConfig(key))
 })

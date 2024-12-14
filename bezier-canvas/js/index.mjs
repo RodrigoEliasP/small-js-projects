@@ -19,21 +19,36 @@ function lerp(a, b, t) {
 
 /**
  * @typedef {{ x: number; y: number;}} CartesianLocatable
+ * @typedef {{ x: number; y: number; color: string;}} ColorizedCartesianLocatable
+ * @typedef {{ x: number; y: number; color: string;}} Point
  * @typedef { { [ x in `${'a'|'b'|'c'|'d'}${'Monomial'}`]: number } } DecomposedMonomials
- */
+ * @typedef {{ radius: number | undefined; color:  string; showLocation: boolean; label: string; }} DrawPointsConfigs
+*/
 
 /**
  * @param {CanvasRenderingContext2D} ctx 
- * @param {CartesianLocatable} place
+ * @param {CartesianLocatable | ColorizedCartesianLocatable} place
  * @param {number} radius
- * @param {{ color:  string; showLocation: boolean; }} options
+ * @param {DrawPointsConfigs} options
  */
-function drawPoint(ctx, place, radius = 5, options) {
-    const { x, y } =  place;
-    const { color = "black", showLocation = flags.showCoordinates} = options ?? {};
+function drawPoint(ctx, place, options) {
+    const { x, y } = place;
+    const { 
+        radius = 5,
+        color = place.color ?? "black", 
+        showLocation = flags.showCoordinates,
+        label,
+    } = options ?? { };
     ctx.fillStyle = 'black';
+
+    let fillText;
     if(showLocation) 
-        ctx.fillText(`(${x.toFixed(2)},${y.toFixed(2)})`, x - radius * 2.3, y - 10);
+        fillText = (`(${x.toFixed(2)},${y.toFixed(2)})`);
+    else if (label) 
+        fillText = label;
+    if (fillText) {
+        ctx.fillText(fillText,x - radius * 2.3, y - 10)
+    }
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(place.x, place.y, radius, 0, 2 * Math.PI);
@@ -66,7 +81,7 @@ function calculateInterpolatedPoint(a, b, t) {
 function drawInterpolatedPoint(ctx, a, b, t, cfg = {}) {
     const { color = 'black' } = cfg;
     const interpolatedPoint = calculateInterpolatedPoint(a, b, t);
-    drawPoint(ctx, interpolatedPoint, undefined, { color });
+    drawPoint(ctx, interpolatedPoint, { color });
 }
 
 
@@ -114,10 +129,10 @@ if(!ctx) {
 
 ctx.translate(mainCanvas.width/2, mainCanvas.height/2);
 
-const pointA = { x: 0, y: -100, label: 'A' };
-const pointB = { x: -100, y: 0, label: 'B' };
-const pointC = { x: 0, y: 100, label: 'C' };
-const pointD = { x: 100, y: 0, label: 'D' };
+const pointA = { x: 0, y: -100, label: 'A', color: 'red' };
+const pointB = { x: -100, y: 0, label: 'B', color: 'green'};
+const pointC = { x: 0, y: 100, label: 'C', color: 'yellow' };
+const pointD = { x: 100, y: 0, label: 'D', color: 'magenta' };
 
 
 
@@ -208,7 +223,7 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
 
     if(flags.showIntermediatePoints) {
         intermediatePoints.forEach((p, i) => {
-            drawPoint(ctx, p, undefined, [3,4].includes(i) ? { color: 'green' } : undefined)
+            drawPoint(ctx, p, [3,4].includes(i) ? { color: 'green' } : undefined)
         })
     }
 
@@ -306,7 +321,7 @@ function drawBernsteinVectors(ctx, t) {
     const closestPoint = getTheClosestPointToNPoints(...allPoints);
 
 
-    drawPoint(ctx, closestPoint, 2, 'green');
+    drawPoint(ctx, closestPoint, { radius: 2, color: 'lime' });
 
 
     allPoints.forEach((point) => {
@@ -333,7 +348,7 @@ function drawBernsteinVectors(ctx, t) {
 
 function drawCubicBezierCurvePointSingleFunction(t) {
     const pointToDraw = calculateCubicBezierCurvePoint(pointA, pointB, pointC, pointD, t);
-    drawPoint(ctx, pointToDraw, undefined, { color: 'blue' });
+    drawPoint(ctx, pointToDraw, { color: 'blue' });
 }
 
 function drawBezierCurve() {
@@ -355,13 +370,13 @@ function draw(t) {
     }
 
     if(mousePoint.x && flags.showPointerIndicator) {
-        drawPoint(ctx, mousePoint, 3, { color: 'red', showLocation: false  })
+        drawPoint(ctx, mousePoint, { radius: 3, color: 'red', showLocation: false  })
     }
 
-    drawPoint(ctx, pointB);
-    drawPoint(ctx, pointC);
-    drawPoint(ctx, pointD);
-    drawPoint(ctx, pointA);
+    allPoints.forEach(point => {
+        drawPoint(ctx, point, { label: flags.showLabels && point.label });
+    })
+
 
 
     drawCubicBezierCurvePointDeCasteljau(t);
