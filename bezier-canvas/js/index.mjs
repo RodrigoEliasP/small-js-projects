@@ -168,7 +168,6 @@ function findPointColiding(points, place) {
     }
     return undefined;
 }
-
 let draggingPoint = undefined;
 
 mainCanvas.addEventListener('mousemove', (e)  => {
@@ -223,7 +222,7 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
 
     if(flags.showIntermediatePoints) {
         intermediatePoints.forEach((p, i) => {
-            drawPoint(ctx, p, [3,4].includes(i) ? { color: 'green' } : undefined)
+            drawPoint(ctx, p, [3,4].includes(i) ? { color: 'purple' } : undefined)
         })
     }
 
@@ -255,10 +254,10 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
  * @returns {{ total: number; decomposedMonomials: DecomposedMonomials }}
  */
 function cubicLerp(a, b, c, d, t) {
-    const aMonomial = ((1 - t) ** 3) * a;
-    const bMonomial = 3 * ((1 - t) ** 2) * t * b;
-    const cMonomial = 3 * (1 - t) * ( t ** 2 ) * c;   
-    const dMonomial = t ** 3 * d;
+    const aMonomial = a * ( - (t ** 3) + 3 * t ** 2 - 3 * t + 1);
+    const bMonomial = b * (3 * t ** 3 - 6 * t ** 2 + 3 * t);
+    const cMonomial = c * (- 3 * t ** 3 +  3 * t ** 2);   
+    const dMonomial = d * (t ** 3);
     return { total: aMonomial + bMonomial + cMonomial + dMonomial, decomposedMonomials: { aMonomial, bMonomial, cMonomial, dMonomial  } };
 }
 
@@ -315,7 +314,8 @@ function getTheClosestPointToNPoints(...points) {
  * 
  * @param {CanvasRenderingContext2D} ctx 
  * @param {number} t
- */
+*/
+let lastCVal;
 function drawBernsteinVectors(ctx, t) {
     const points = calculateCubicBezierCurvePoint(...allPoints, t);
     const closestPoint = getTheClosestPointToNPoints(...allPoints);
@@ -324,24 +324,30 @@ function drawBernsteinVectors(ctx, t) {
     drawPoint(ctx, closestPoint, { radius: 2, color: 'lime' });
 
 
-    allPoints.forEach((point) => {
+    for (const point of allPoints ) {
         ctx.moveTo(closestPoint.x, closestPoint.y);
         /**
          * @type {'a' | 'b' | 'c' | 'd' }
          */
         const pointLabel = point.label.toLowerCase();
-        const m = points.monomialSum[pointLabel]
-        const monomialSum = (m.x + m.y)/2;
+        
+        const target = points.monomialSum[pointLabel]
 
-        console.log(point.x, closestPoint.x, monomialSum, point.label);
-        const endPoint = { 
-            x: lerp(point.x, closestPoint.x, monomialSum),
-            y: lerp(point.y, closestPoint.y,  monomialSum)
+        const val = point.x + point.y;
+        if(pointLabel === 'c' && lastCVal !== val) {
+            lastCVal = val;
         }
-        ctx.fillStyle = 'red';
+
+        const endPoint = { 
+            x: target.x,
+            y: target.y
+        }
+        ctx.strokeStyle = 'black',
         ctx.lineTo(endPoint.x, endPoint.y);
         ctx.stroke();
-    })
+        
+
+    }
     
 
 }
@@ -386,7 +392,7 @@ function draw(t) {
     drawBezierCurve();
 
     drawCubicBezierCurvePointDeCasteljau(t);
-    // drawCubicBezierCurvePointSingleFunction(t);
+    //drawCubicBezierCurvePointSingleFunction(t);
     allPoints.forEach(point => {
         drawPoint(ctx, point, { label: flags.showLabels && point.label });
     })

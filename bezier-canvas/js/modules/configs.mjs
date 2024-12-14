@@ -5,7 +5,7 @@ export const configs = {
         showAxis: false,
         showCoordinates: false,
         showPointerIndicator: false,
-        showBernstein: false,
+        showBernstein: true,
         showCurvePath: true,
         showLabels: false,
     },
