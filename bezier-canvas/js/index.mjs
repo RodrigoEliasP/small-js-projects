@@ -236,7 +236,7 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
         }
     );
     
-    if(flags.showIntermediateLines) {
+    if(flags.showLines) {
 
         drawLine(ctx, ABInterpolatedPoint_1, BCInterpolatedPoint_1);
         drawLine(ctx, BCInterpolatedPoint_1, CDInterpolatedPoint_1);
@@ -373,31 +373,24 @@ function draw(t) {
         drawPoint(ctx, mousePoint, { radius: 3, color: 'red', showLocation: false  })
     }
 
-    allPoints.forEach(point => {
-        drawPoint(ctx, point, { label: flags.showLabels && point.label });
-    })
-
-
-
-    drawCubicBezierCurvePointDeCasteljau(t);
-    //drawCubicBezierCurvePointSingleFunction(t);
     if(flags.showBernstein) {
         drawBernsteinVectors(ctx, t);
     }
 
-    if(flags.showPrimaryLines) {
+    if(flags.showLines) {
+        drawLine(ctx, pointA, pointB);
         drawLine(ctx, pointB, pointC);
         drawLine(ctx, pointC, pointD);
-        drawLine(ctx, pointB, pointA);
     }
 
     drawBezierCurve();
-}
-let range = 0;
-let going = true;
-let step = 1;
 
-let animationSpeedCache = configs.animationSpeed;
+    drawCubicBezierCurvePointDeCasteljau(t);
+    // drawCubicBezierCurvePointSingleFunction(t);
+    allPoints.forEach(point => {
+        drawPoint(ctx, point, { label: flags.showLabels && point.label });
+    })
+}
 
 const animationController = new SceneController(configs);
 

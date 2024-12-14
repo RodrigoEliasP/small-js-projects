@@ -1,8 +1,7 @@
 export const configs = {
     flags: {    
         showIntermediatePoints: false,
-        showIntermediateLines: false,
-        showPrimaryLines: false,
+        showLines: false,
         showAxis: false,
         showCoordinates: false,
         showPointerIndicator: false,
