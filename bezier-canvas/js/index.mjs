@@ -339,8 +339,8 @@ function drawBernsteinVectors(ctx, t) {
         }
 
         const endPoint = { 
-            x: target.x,
-            y: target.y
+            x: target.x + closestPoint.x,
+            y: target.y + closestPoint.y
         }
         ctx.strokeStyle = 'black',
         ctx.lineTo(endPoint.x, endPoint.y);
