@@ -4,14 +4,23 @@ import { SceneController } from "./modules/sceneController.mjs";
  * @type HTMLCanvasElement
  */
 const mainCanvas = document.querySelector('#main-canvas');
+/**
+ * @type HTMLCanvasElement
+ */
+const graphingCanvas = document.querySelector('#graphing-canvas');
 
 
-const ctx = mainCanvas.getContext('2d');
+const mainCtx = mainCanvas.getContext('2d');
+const graphingCtx = graphingCanvas.getContext('2d');
 
+if(!mainCtx || !graphingCtx) {
+    alert('this browser does not support canvas');
+}
 
+mainCtx.translate(mainCanvas.width/2, mainCanvas.height/2);
+graphingCtx.translate(graphingCanvas.width/2, graphingCanvas.height/2);
 
 const { flags } = configs;
-
 
 function lerp(a, b, t) {
     return a + t * (b  - a);
@@ -85,6 +94,7 @@ function drawPoint(ctx, place, options) {
     if (fillText) {
         ctx.fillText(fillText,x - radius * 2.3, y - 10)
     }
+    ctx.strokeStyle = color;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(place.x, place.y, radius, 0, 2 * Math.PI);
@@ -125,11 +135,12 @@ function drawInterpolatedPoint(ctx, a, b, t, cfg = {}) {
  * @param {CanvasRenderingContext2D} ctx 
  * @param {CartesianLocatable} a
  * @param {CartesianLocatable} b
+ * @param {{ color: string }} options
  * 
  */
-function drawLine(ctx, a, b) {
+function drawLine(ctx, a, b, { color = 'black' } = {}) {
     ctx.beginPath();
-    ctx.fillStyle = "black"
+    ctx.strokeStyle = color
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
@@ -138,9 +149,9 @@ function drawLine(ctx, a, b) {
  * 
  * @param {CanvasRenderingContext2D} ctx 
  */
-function clearCanvas(ctx) {
+function clearCanvas(ctx, canvas) {
     ctx.fillStyle = 'white';
-    ctx.fillRect(-mainCanvas.width/2, -mainCanvas.height/2, mainCanvas.width, mainCanvas.height)
+    ctx.fillRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
 }
 
 /**
@@ -159,11 +170,6 @@ function drawAxisLines(ctx) {
     ctx.stroke()
 }
 
-if(!ctx) {
-    alert('this browser does not support canvas');
-}
-
-ctx.translate(mainCanvas.width/2, mainCanvas.height/2);
 
 const pointA = { x: 0, y: -100, label: 'A', color: 'red' };
 const pointB = { x: -100, y: 0, label: 'B', color: 'green'};
@@ -184,7 +190,8 @@ const getActualMousePlacement = (e) => {
 }
 
 
-const allPoints = [pointA, pointB, pointC, pointD];
+const allPointsArray = [pointA, pointB, pointC, pointD];
+const allPointsObject = { pointA, pointB, pointC, pointD };
 
 /**
  * 
@@ -221,7 +228,7 @@ mainCanvas.addEventListener('mousemove', (e)  => {
 mainCanvas.addEventListener('mousedown', (e) => {
     const placement = getActualMousePlacement(e);
 
-    let pointColiding = findPointColiding(allPoints, placement);
+    let pointColiding = findPointColiding(allPointsArray, placement);
 
     
     if(pointColiding) {
@@ -258,12 +265,12 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
 
     if(flags.showIntermediatePoints) {
         intermediatePoints.forEach((p, i) => {
-            drawPoint(ctx, p, [3,4].includes(i) ? { color: 'purple' } : undefined)
+            drawPoint(mainCtx, p, [3,4].includes(i) ? { color: 'purple' } : undefined)
         })
     }
 
     const ABCDInterpolatedPoint_3 = drawInterpolatedPoint(
-        ctx, 
+        mainCtx, 
         ABCInterpolatedPoint_2, 
         ABDInterpolatedPoint_2, 
         t, {
@@ -273,9 +280,9 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
     
     if(flags.showLines) {
 
-        drawLine(ctx, ABInterpolatedPoint_1, BCInterpolatedPoint_1);
-        drawLine(ctx, BCInterpolatedPoint_1, CDInterpolatedPoint_1);
-        drawLine(ctx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
+        drawLine(mainCtx, ABInterpolatedPoint_1, BCInterpolatedPoint_1);
+        drawLine(mainCtx, BCInterpolatedPoint_1, CDInterpolatedPoint_1);
+        drawLine(mainCtx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
     }
 }
 
@@ -348,38 +355,62 @@ function getTheClosestPointToNPoints(...points) {
         return acc;
     }, {x: 0, y: 0})
 }
-
+let lastCacheId = '';
+/**
+ * @type { Map<string, ReturnType<calculateCubicBezierCurvePoint> }
+ */
+const pointsCache = new Map();
 /**
  * 
  * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} graphingCtx 
  * @param {number} t
 */
-function drawBernsteinVectors(ctx, t) {
-    const closestPoint = getTheClosestPointToNPoints(...allPoints);
-    const points = calculateCubicBezierCurvePoint(
-        calculatePoints(pointA, closestPoint, 'sub'), 
-        calculatePoints(pointB, closestPoint, 'sub'), 
-        calculatePoints(pointC, closestPoint, 'sub'), 
-        calculatePoints(pointD, closestPoint, 'sub'),
-    t);
+function drawBernsteinVectors(ctx, graphingCtx, t) {
+    const closestPoint = getTheClosestPointToNPoints(...allPointsArray);
+    if(lastCacheId !== JSON.stringify(allPointsObject)) {
+        lastCacheId = JSON.stringify(allPointsObject);
+        pointsCache.clear();
+    };
+    const data = pointsCache.get(t.toString());
+    let points;
+    if(!data) {
+        points = calculateCubicBezierCurvePoint(
+            calculatePoints(pointA, closestPoint, 'sub'), 
+            calculatePoints(pointB, closestPoint, 'sub'), 
+            calculatePoints(pointC, closestPoint, 'sub'), 
+            calculatePoints(pointD, closestPoint, 'sub'),
+        t);
+        pointsCache.set(t.toString(), points)
+    } else {
+        points = data;
+    }
+
+    
+    for (const [t, dataset] of pointsCache.entries()) {
+        const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2;
+        Object.entries(dataset.monomialSum).forEach(([pointLabel, point]) => {
+            const originPoint = allPointsObject['point' + pointLabel.toUpperCase()];
+            const plotPoint = calculatePoints(
+                calculatePoints(point, originPoint, 'div'),
+                { x: graphingCanvas.height/2, y: graphingCanvas.height/2 }, 
+                "mult"
+            );
+            drawPoint(graphingCtx, { x: scaledT, y: plotPoint.y + plotPoint.x, color: originPoint.color }, { radius: 1 })
+        }) 
+    }
 
 
     drawPoint(ctx, closestPoint, { radius: 2, color: 'lime' });
     let lastPoint = closestPoint
-    for (const point of allPoints ) {
-        ctx.beginPath();
-        ctx.moveTo(lastPoint.x, lastPoint.y);
-        ctx.strokeStyle = point.color;
-        /**
-         * @type {'a' | 'b' | 'c' | 'd' }
-         */
+    for (const point of allPointsArray ) {
         const pointLabel = point.label.toLowerCase();
         
         const target = points.monomialSum[pointLabel]
 
         const endPoint = calculatePoints(target, lastPoint);
-        ctx.lineTo(endPoint.x, endPoint.y);
-        ctx.stroke();
+        drawLine(ctx, lastPoint, endPoint, { color: point.color })
+
         lastPoint = endPoint
         
 
@@ -389,49 +420,58 @@ function drawBernsteinVectors(ctx, t) {
 
 }
 
-function drawCubicBezierCurvePointSingleFunction(t) {
+function drawCubicBezierCurve(t) {
     const pointToDraw = calculateCubicBezierCurvePoint(pointA, pointB, pointC, pointD, t);
-    drawPoint(ctx, pointToDraw, { color: 'blue' });
+    drawPoint(mainCtx, pointToDraw, { color: 'blue' });
 }
 
 function drawBezierCurve() {
     if(!flags.showCurvePath) {
         return
     }
-    ctx.fillStyle = 'black'; 
-    ctx.moveTo(pointA.x, pointA.y);
-    ctx.bezierCurveTo(pointB.x, pointB.y, pointC.x, pointC.y, pointD.x, pointD.y)
-    ctx.stroke();
+    mainCtx.fillStyle = 'black'; 
+    mainCtx.moveTo(pointA.x, pointA.y);
+    mainCtx.bezierCurveTo(pointB.x, pointB.y, pointC.x, pointC.y, pointD.x, pointD.y)
+    mainCtx.stroke();
 }
 
 
 function draw(t) {
-    clearCanvas(ctx);
+    clearCanvas(mainCtx, mainCanvas);
+    if(flags.showBernstein) {
+        graphingCanvas.hidden = false;
+        clearCanvas(graphingCtx, graphingCanvas);
+    } else {
+        graphingCanvas.hidden = true;
+    }
+    
+
     
     if (flags.showAxis) {
-        drawAxisLines(ctx);
+        drawAxisLines(mainCtx);
     }
 
     if(mousePoint.x && flags.showPointerIndicator) {
-        drawPoint(ctx, mousePoint, { radius: 3, color: 'red', showLocation: false  })
+        drawPoint(mainCtx, mousePoint, { radius: 3, color: 'red', showLocation: false  })
     }
 
     if(flags.showBernstein) {
-        drawBernsteinVectors(ctx, t);
+        
+        drawBernsteinVectors(mainCtx, graphingCtx, t);
     }
 
     if(flags.showLines) {
-        drawLine(ctx, pointA, pointB);
-        drawLine(ctx, pointB, pointC);
-        drawLine(ctx, pointC, pointD);
+        drawLine(mainCtx, pointA, pointB);
+        drawLine(mainCtx, pointB, pointC);
+        drawLine(mainCtx, pointC, pointD);
     }
 
     drawBezierCurve();
 
     drawCubicBezierCurvePointDeCasteljau(t);
     //drawCubicBezierCurvePointSingleFunction(t);
-    allPoints.forEach(point => {
-        drawPoint(ctx, point, { label: flags.showLabels && point.label });
+    allPointsArray.forEach(point => {
+        drawPoint(mainCtx, point, { label: flags.showLabels && point.label });
     })
 }
 

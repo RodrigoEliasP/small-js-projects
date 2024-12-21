@@ -10,14 +10,22 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-around">
-    <div>
+    <div class="flex flex-col gap-2">
         <canvas 
             style="border: 1px solid black;" 
             id="main-canvas" 
             width="500" 
             height="400">
         </canvas>
+        
     </div>
+    <canvas 
+            style="border: 1px solid black;" 
+            hidden
+            id="graphing-canvas" 
+            width="500" 
+            height="500">
+        </canvas>
     <div class="bg-white shadow-md rounded-md p-6 w-96">
         <h1 class="text-lg font-semibold text-gray-800 mb-4">Config Manager</h1>
         <form class="space-y-4">
@@ -41,7 +49,7 @@
                     </div>
                 </div>
                 <div>
-                    <label for="animationRange" class="text-gray-700 font-medium mb-2">
+                    <label id="animationRangeLabel" for="animationRange" class="text-gray-700 font-medium mb-2">
                         Animation speed
                     </label>
                     <input type="range" id="animationRange" min="0.25" step="0.25" max="2"

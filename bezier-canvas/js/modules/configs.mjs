@@ -30,6 +30,8 @@ export function toggleConfig(key) {
  * @type {HTMLInputElement}
  */
 const animationRange = document.querySelector("#animationRange");
+const animationRangeLabel = document.querySelector("#animationRangeLabel");
+
 
 /**
  * @type {HTMLSpanElement}
@@ -52,6 +54,7 @@ function changeAnimationMode(mode) {
             min: 0.25,
             unit: 'X',
             max: 2,
+            label: "Animation speed",
             stepSize: 0.25,
             handler: () => {
                 rangeValue.textContent = Number(animationRange.value).toFixed(2);
@@ -60,6 +63,7 @@ function changeAnimationMode(mode) {
         }, 
         man: {
             defaultValue: 50,
+            label: 'Animation point',
             unit: '%',
             min: 0,
             max: 100,
@@ -70,12 +74,12 @@ function changeAnimationMode(mode) {
             }
         }
     }
-    const { defaultValue, handler, stepSize, min, max, unit } = values[mode];
+    const { defaultValue, handler, stepSize, min, max, unit, label } = values[mode];
     animationRange.step = stepSize;
     animationRange.min = min;
     animationRange.max = max;
     animationRange.value = defaultValue;
-
+    animationRangeLabel.innerHTML = label;
     rangeUnit.textContent = unit;
 
     animationMode.value = mode;
