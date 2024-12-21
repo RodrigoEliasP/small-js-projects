@@ -26,6 +26,27 @@ function lerp(a, b, t) {
 */
 
 /**
+ * 
+ * @param {CartesianLocatable} a 
+ * @param {CartesianLocatable} b
+ * @param {'sum' | 'sub' | 'div' | 'mult'} c
+ * @returns { CartesianLocatable } 
+ */
+function calculatePoints(a, b, c = 'sum') {
+    switch (c) {
+        case 'sum':
+            return  {
+                x: a.x + b.x,
+                y: a.y + b.y,
+            }
+    
+        default:
+            break;
+    }
+    
+}
+
+/**
  * @param {CanvasRenderingContext2D} ctx 
  * @param {CartesianLocatable | ColorizedCartesianLocatable} place
  * @param {number} radius
@@ -254,11 +275,14 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
  * @returns {{ total: number; decomposedMonomials: DecomposedMonomials }}
  */
 function cubicLerp(a, b, c, d, t) {
-    const aMonomial = a * ( - (t ** 3) + 3 * t ** 2 - 3 * t + 1);
+    const aMonomial = a * ( -(t ** 3) + 3 * t ** 2 - 3 * t + 1);
     const bMonomial = b * (3 * t ** 3 - 6 * t ** 2 + 3 * t);
     const cMonomial = c * (- 3 * t ** 3 +  3 * t ** 2);   
     const dMonomial = d * (t ** 3);
-    return { total: aMonomial + bMonomial + cMonomial + dMonomial, decomposedMonomials: { aMonomial, bMonomial, cMonomial, dMonomial  } };
+    const total = aMonomial + bMonomial + cMonomial + dMonomial;
+    const decomposedMonomials = { aMonomial, bMonomial, cMonomial, dMonomial }; 
+    return { 
+        total, decomposedMonomials };
 }
 
 /**
@@ -317,15 +341,14 @@ function getTheClosestPointToNPoints(...points) {
 */
 let lastCVal;
 function drawBernsteinVectors(ctx, t) {
-    const points = calculateCubicBezierCurvePoint(...allPoints, t);
     const closestPoint = getTheClosestPointToNPoints(...allPoints);
+    const points = calculateCubicBezierCurvePoint(pointA, pointB, pointC, pointD, t);
 
 
     drawPoint(ctx, closestPoint, { radius: 2, color: 'lime' });
-
-
+    let lastPoint = { x: 0 , y: 0 }
     for (const point of allPoints ) {
-        ctx.moveTo(closestPoint.x, closestPoint.y);
+        ctx.moveTo(lastPoint.x, lastPoint.y);
         /**
          * @type {'a' | 'b' | 'c' | 'd' }
          */
@@ -338,13 +361,11 @@ function drawBernsteinVectors(ctx, t) {
             lastCVal = val;
         }
 
-        const endPoint = { 
-            x: target.x + closestPoint.x,
-            y: target.y + closestPoint.y
-        }
+        const endPoint = calculatePoints(target, lastPoint);
         ctx.strokeStyle = 'black',
         ctx.lineTo(endPoint.x, endPoint.y);
         ctx.stroke();
+        lastPoint = endPoint
         
 
     }
