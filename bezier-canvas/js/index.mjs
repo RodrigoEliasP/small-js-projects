@@ -39,6 +39,21 @@ function calculatePoints(a, b, c = 'sum') {
                 x: a.x + b.x,
                 y: a.y + b.y,
             }
+        case 'sub':
+            return  {
+                x: a.x - b.x,
+                y: a.y - b.y,
+            }
+        case 'mult':
+            return  {
+                x: a.x * b.x,
+                y: a.y * b.y,
+            }
+        case 'div':
+            return  {
+                x: a.x / b.x,
+                y: a.y / b.y,
+            }
     
         default:
             break;
@@ -153,7 +168,7 @@ ctx.translate(mainCanvas.width/2, mainCanvas.height/2);
 const pointA = { x: 0, y: -100, label: 'A', color: 'red' };
 const pointB = { x: -100, y: 0, label: 'B', color: 'green'};
 const pointC = { x: 0, y: 100, label: 'C', color: 'yellow' };
-const pointD = { x: 100, y: 0, label: 'D', color: 'magenta' };
+const pointD = { x: 100, y: 0, label: 'D', color: 'purple' };
 
 
 
@@ -339,16 +354,22 @@ function getTheClosestPointToNPoints(...points) {
  * @param {CanvasRenderingContext2D} ctx 
  * @param {number} t
 */
-let lastCVal;
 function drawBernsteinVectors(ctx, t) {
     const closestPoint = getTheClosestPointToNPoints(...allPoints);
-    const points = calculateCubicBezierCurvePoint(pointA, pointB, pointC, pointD, t);
+    const points = calculateCubicBezierCurvePoint(
+        calculatePoints(pointA, closestPoint, 'sub'), 
+        calculatePoints(pointB, closestPoint, 'sub'), 
+        calculatePoints(pointC, closestPoint, 'sub'), 
+        calculatePoints(pointD, closestPoint, 'sub'),
+    t);
 
 
     drawPoint(ctx, closestPoint, { radius: 2, color: 'lime' });
-    let lastPoint = { x: 0 , y: 0 }
+    let lastPoint = closestPoint
     for (const point of allPoints ) {
+        ctx.beginPath();
         ctx.moveTo(lastPoint.x, lastPoint.y);
+        ctx.strokeStyle = point.color;
         /**
          * @type {'a' | 'b' | 'c' | 'd' }
          */
@@ -356,19 +377,14 @@ function drawBernsteinVectors(ctx, t) {
         
         const target = points.monomialSum[pointLabel]
 
-        const val = point.x + point.y;
-        if(pointLabel === 'c' && lastCVal !== val) {
-            lastCVal = val;
-        }
-
         const endPoint = calculatePoints(target, lastPoint);
-        ctx.strokeStyle = 'black',
         ctx.lineTo(endPoint.x, endPoint.y);
         ctx.stroke();
         lastPoint = endPoint
         
 
     }
+    ctx.strokeStyle = 'black'
     
 
 }
