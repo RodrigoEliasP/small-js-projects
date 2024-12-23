@@ -1,5 +1,8 @@
-import { configs } from "./modules/configs.mjs"
+import { configs, flags } from "./modules/configs.mjs"
+import { drawBernsteinVectors } from "./modules/drawBernsteinVectors.mjs";
+import { calculateCubicBezierCurvePoint, drawLine, lerp } from "./modules/math.mjs";
 import { SceneController } from "./modules/sceneController.mjs";
+import { drawPoint, makeLogValueOnce } from "./modules/utils.mjs";
 /**
  * @type HTMLCanvasElement
  */
@@ -20,11 +23,7 @@ if(!mainCtx || !graphingCtx) {
 mainCtx.translate(mainCanvas.width/2, mainCanvas.height/2);
 graphingCtx.translate(graphingCanvas.width/2, graphingCanvas.height/2);
 
-const { flags } = configs;
 
-function lerp(a, b, t) {
-    return a + t * (b  - a);
-}
 
 /**
  * @typedef {{ x: number; y: number;}} CartesianLocatable
@@ -34,73 +33,7 @@ function lerp(a, b, t) {
  * @typedef {{ radius: number | undefined; color:  string; showLocation: boolean; label: string; }} DrawPointsConfigs
 */
 
-/**
- * 
- * @param {CartesianLocatable} a 
- * @param {CartesianLocatable} b
- * @param {'sum' | 'sub' | 'div' | 'mult'} c
- * @returns { CartesianLocatable } 
- */
-function calculatePoints(a, b, c = 'sum') {
-    switch (c) {
-        case 'sum':
-            return  {
-                x: a.x + b.x,
-                y: a.y + b.y,
-            }
-        case 'sub':
-            return  {
-                x: a.x - b.x,
-                y: a.y - b.y,
-            }
-        case 'mult':
-            return  {
-                x: a.x * b.x,
-                y: a.y * b.y,
-            }
-        case 'div':
-            return  {
-                x: a.x / b.x,
-                y: a.y / b.y,
-            }
-    
-        default:
-            break;
-    }
-    
-}
 
-/**
- * @param {CanvasRenderingContext2D} ctx 
- * @param {CartesianLocatable | ColorizedCartesianLocatable} place
- * @param {number} radius
- * @param {DrawPointsConfigs} options
- */
-function drawPoint(ctx, place, options) {
-    const { x, y } = place;
-    const { 
-        radius = 5,
-        color = place.color ?? "black", 
-        showLocation = flags.showCoordinates,
-        label,
-    } = options ?? { };
-    ctx.fillStyle = 'black';
-
-    let fillText;
-    if(showLocation) 
-        fillText = (`(${x.toFixed(2)},${y.toFixed(2)})`);
-    else if (label) 
-        fillText = label;
-    if (fillText) {
-        ctx.fillText(fillText,x - radius * 2.3, y - 10)
-    }
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(place.x, place.y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-}
 /**
  * 
  * @param {CartesianLocatable} a
@@ -130,27 +63,12 @@ function drawInterpolatedPoint(ctx, a, b, t, cfg = {}) {
     drawPoint(ctx, interpolatedPoint, { color });
 }
 
-
-/**
- * @param {CanvasRenderingContext2D} ctx 
- * @param {CartesianLocatable} a
- * @param {CartesianLocatable} b
- * @param {{ color: string }} options
- * 
- */
-function drawLine(ctx, a, b, { color = 'black' } = {}) {
-    ctx.beginPath();
-    ctx.strokeStyle = color
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.stroke();
-}
 /**
  * 
  * @param {CanvasRenderingContext2D} ctx 
  */
 function clearCanvas(ctx, canvas) {
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = 'black';
     ctx.fillRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
 }
 
@@ -287,138 +205,10 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
 }
 
 
-/**
- * 
- * @param {number} a 
- * @param {number} b 
- * @param {number} c 
- * @param {number} d 
- * @param {number} t 
- * @returns {{ total: number; decomposedMonomials: DecomposedMonomials }}
- */
-function cubicLerp(a, b, c, d, t) {
-    const aMonomial = a * ( -(t ** 3) + 3 * t ** 2 - 3 * t + 1);
-    const bMonomial = b * (3 * t ** 3 - 6 * t ** 2 + 3 * t);
-    const cMonomial = c * (- 3 * t ** 3 +  3 * t ** 2);   
-    const dMonomial = d * (t ** 3);
-    const total = aMonomial + bMonomial + cMonomial + dMonomial;
-    const decomposedMonomials = { aMonomial, bMonomial, cMonomial, dMonomial }; 
-    return { 
-        total, decomposedMonomials };
-}
-
-/**
- * 
- * @param {CartesianLocatable} a 
- * @param {CartesianLocatable} b 
- * @param {CartesianLocatable} c 
- * @param {CartesianLocatable} d 
- * @param {number} t 
- * @returns {CartesianLocatable & { monomialSum: { a: CartesianLocatable, b: CartesianLocatable, c: CartesianLocatable, d: CartesianLocatable }}}
- */
-function calculateCubicBezierCurvePoint(a, b, c, d, t) {
-    const x = cubicLerp(a.x, b.x, c.x, d.x, t);
-    const y = cubicLerp(a.y, b.y, c.y, d.y, t);
-    return { 
-        x: x.total, 
-        y: y.total, 
-        monomialSum: { 
-            a: {
-                x: x.decomposedMonomials.aMonomial,
-                y: y.decomposedMonomials.aMonomial
-            }, 
-            b: { 
-                x: x.decomposedMonomials.bMonomial,
-                y: y.decomposedMonomials.bMonomial
-            }, 
-            c: { 
-                x: x.decomposedMonomials.cMonomial,
-                y: y.decomposedMonomials.cMonomial
-            }, 
-            d: {
-                x: x.decomposedMonomials.dMonomial, 
-                y: y.decomposedMonomials.dMonomial
-            }  
-        } 
-    }
-}
-/**
- * 
- * @param  {...CartesianLocatable} points 
- */
-function getTheClosestPointToNPoints(...points) {
-    const totalPoints = points.length;
-
-    return points.reduce((acc, cur) => { 
-        acc.x += cur.x / totalPoints;
-        acc.y += cur.y / totalPoints;
-        return acc;
-    }, {x: 0, y: 0})
-}
-let lastCacheId = '';
-/**
- * @type { Map<string, ReturnType<calculateCubicBezierCurvePoint> }
- */
-const pointsCache = new Map();
-/**
- * 
- * @param {CanvasRenderingContext2D} ctx 
- * @param {CanvasRenderingContext2D} graphingCtx 
- * @param {number} t
-*/
-function drawBernsteinVectors(ctx, graphingCtx, t) {
-    const closestPoint = getTheClosestPointToNPoints(...allPointsArray);
-    if(lastCacheId !== JSON.stringify(allPointsObject)) {
-        lastCacheId = JSON.stringify(allPointsObject);
-        pointsCache.clear();
-    };
-    const data = pointsCache.get(t.toString());
-    let points;
-    if(!data) {
-        points = calculateCubicBezierCurvePoint(
-            calculatePoints(pointA, closestPoint, 'sub'), 
-            calculatePoints(pointB, closestPoint, 'sub'), 
-            calculatePoints(pointC, closestPoint, 'sub'), 
-            calculatePoints(pointD, closestPoint, 'sub'),
-        t);
-        pointsCache.set(t.toString(), points)
-    } else {
-        points = data;
-    }
-
-    
-    for (const [t, dataset] of pointsCache.entries()) {
-        const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2;
-        Object.entries(dataset.monomialSum).forEach(([pointLabel, point]) => {
-            const originPoint = allPointsObject['point' + pointLabel.toUpperCase()];
-            const plotPoint = calculatePoints(
-                calculatePoints(point, originPoint, 'div'),
-                { x: graphingCanvas.height/2, y: graphingCanvas.height/2 }, 
-                "mult"
-            );
-            drawPoint(graphingCtx, { x: scaledT, y: plotPoint.y + plotPoint.x, color: originPoint.color }, { radius: 1 })
-        }) 
-    }
 
 
-    drawPoint(ctx, closestPoint, { radius: 2, color: 'lime' });
-    let lastPoint = closestPoint
-    for (const point of allPointsArray ) {
-        const pointLabel = point.label.toLowerCase();
-        
-        const target = points.monomialSum[pointLabel]
 
-        const endPoint = calculatePoints(target, lastPoint);
-        drawLine(ctx, lastPoint, endPoint, { color: point.color })
 
-        lastPoint = endPoint
-        
-
-    }
-    ctx.strokeStyle = 'black'
-    
-
-}
 
 function drawCubicBezierCurve(t) {
     const pointToDraw = calculateCubicBezierCurvePoint(pointA, pointB, pointC, pointD, t);
@@ -457,7 +247,7 @@ function draw(t) {
 
     if(flags.showBernstein) {
         
-        drawBernsteinVectors(mainCtx, graphingCtx, t);
+        drawBernsteinVectors(mainCtx, { ctx: graphingCtx, canvas: graphingCanvas }, { t , allPointsArray, allPointsObject });
     }
 
     if(flags.showLines) {

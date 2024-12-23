@@ -107,4 +107,6 @@ Object.keys(configs.flags).forEach(key => {
     }
     el.checked = configs.flags[key];
     el.addEventListener('click', ()=>  toggleConfig(key))
-})
+});
+
+export const { flags } = configs;
