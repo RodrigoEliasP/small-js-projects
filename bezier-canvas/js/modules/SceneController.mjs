@@ -43,4 +43,22 @@ export class SceneController {
         }
         return t;
     }
+
+    getRangesForConfiguration() {
+        switch (this.configs.animation.type) {
+            case 'man':
+                return {
+                    min: 0,
+                    max: 100,
+                    step: 1
+                }
+            case 'auto':
+                const maxRange = 100 * (2.25 - this.configs.animation.speed);
+                return {
+                    min: 0,
+                    max: maxRange,
+                    step: 1
+                }
+        }
+    }
 }

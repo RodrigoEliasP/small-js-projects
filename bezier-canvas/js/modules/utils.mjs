@@ -1,6 +1,12 @@
 import { flags } from "./configs.mjs";
 
 /**
+ * @typedef { import("../index.mjs").CartesianLocatable } CartesianLocatable
+ * @typedef { import("../index.mjs").ColorizedCartesianLocatable } ColorizedCartesianLocatable
+ * @typedef { import("../index.mjs").DrawPointsConfigs } DrawPointsConfigs
+ */
+
+/**
 * @param {CanvasRenderingContext2D} ctx 
 * @param {CartesianLocatable | ColorizedCartesianLocatable} place
 * @param {number} radius

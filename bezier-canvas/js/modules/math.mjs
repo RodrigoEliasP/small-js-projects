@@ -1,4 +1,8 @@
 /**
+ * @typedef { import("../index.mjs").CartesianLocatable } CartesianLocatable
+ */ 
+
+/**
  * 
  * @param  {...CartesianLocatable} points 
  */

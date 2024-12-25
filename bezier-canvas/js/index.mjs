@@ -1,7 +1,7 @@
 import { configs, flags } from "./modules/configs.mjs"
 import { drawBernsteinVectors } from "./modules/drawBernsteinVectors.mjs";
 import { calculateCubicBezierCurvePoint, drawLine, lerp } from "./modules/math.mjs";
-import { SceneController } from "./modules/sceneController.mjs";
+import { SceneController } from "./modules/SceneController.mjs";
 import { drawPoint, makeLogValueOnce } from "./modules/utils.mjs";
 /**
  * @type HTMLCanvasElement
@@ -68,7 +68,7 @@ function drawInterpolatedPoint(ctx, a, b, t, cfg = {}) {
  * @param {CanvasRenderingContext2D} ctx 
  */
 function clearCanvas(ctx, canvas) {
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#dedede';
     ctx.fillRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
 }
 
@@ -225,8 +225,12 @@ function drawBezierCurve() {
     mainCtx.stroke();
 }
 
-
-function draw(t) {
+/**
+ * 
+ * @param {number} t 
+ * @param {SceneController} animationController 
+ */
+function draw(t, animationController) {
     clearCanvas(mainCtx, mainCanvas);
     if(flags.showBernstein) {
         graphingCanvas.hidden = false;
@@ -247,7 +251,7 @@ function draw(t) {
 
     if(flags.showBernstein) {
         
-        drawBernsteinVectors(mainCtx, { ctx: graphingCtx, canvas: graphingCanvas }, { t , allPointsArray, allPointsObject });
+        drawBernsteinVectors(mainCtx, { ctx: graphingCtx, canvas: graphingCanvas }, { t, allPointsArray, allPointsObject, animationController });
     }
 
     if(flags.showLines) {
@@ -271,7 +275,7 @@ function main() {
 
     const t = animationController.getAnimationDisplacement(configs.animation.type);
     
-    requestAnimationFrame(() => draw(t))
+    requestAnimationFrame(() => draw(t, animationController))
 }
 setInterval(main, 5)
 
