@@ -60,7 +60,7 @@ export class SceneController {
                 const maxRange = this.#getMaxRange();
                 return {
                     min: 0,
-                    max: maxRange / 100,
+                    max: 1,
                     step: 0.01
                 }
         }

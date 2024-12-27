@@ -56,7 +56,7 @@ export class MathFunctionStore {
     generateResults() {
         this.resetStore();
 
-        for (let i = this.#rangeOptions.min; i < this.#rangeOptions.max; i += this.#rangeOptions.step) {
+        for (let i = this.#rangeOptions.min; i <= this.#rangeOptions.max; i += this.#rangeOptions.step) {
             this.#setNewResult(i);
         }
     }

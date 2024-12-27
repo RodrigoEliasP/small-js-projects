@@ -27,7 +27,6 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
     const closestPoint = getTheClosestPointToNPoints(...allPointsArray);
     const range = animationController.getRangesForConfiguration();
     if(lastCacheId !== JSON.stringify({...allPointsObject, ...range})) {
-        console.log('changed');
         lastCacheId = JSON.stringify({...allPointsObject, ...range});
         cache.setConfigs((a,b,c,d, value) => {
             return calculateCubicBezierCurvePoint(
@@ -40,37 +39,44 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
         cache.generateResults();
     };
     const points = cache.retrieveAllResults();
-    logOnce(points);
-
     for (const [t, dataset] of points) {
-        logOnce(t);
-        const scaledT = t * graphingCanvas.width/2 - graphingCanvas.width / 4;
+        const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2;
         Object.entries(dataset.monomialSum).forEach(([pointLabel, point]) => {
             const originPoint = allPointsObject['point' + pointLabel.toUpperCase()];
-            const plotPoint = calculatePoints(
-                calculatePoints(point, calculatePoints(originPoint, closestPoint), 'div'),
-                { x: -graphingCanvas.height/5, y: -graphingCanvas.height/5 }, 
+
+            const pointWithOffset = calculatePoints(originPoint, closestPoint);
+            const weightedSumRatio = calculatePoints(point, pointWithOffset, 'div', { divisionByZeroValue: 0.001 });
+            const scaledPoint = 
+                calculatePoints(
+                weightedSumRatio,
+                { x: -graphingCanvas.height, y: -graphingCanvas.height }, 
                 "mult"
-            );
+            )
+
+            if(pointLabel === 'a')
+            logOnce(weightedSumRatio, scaledPoint, t);
             
-            drawPoint(graphingCtx, { x: scaledT, y: plotPoint.y + plotPoint.x, color: originPoint.color }, { radius: 1, showLocation: t === 100  })
+            drawPoint(
+                graphingCtx, 
+                { 
+                    x: scaledT, 
+                    y: -Math.abs(scaledPoint.y + scaledPoint.x),
+                    color: originPoint.color 
+                }, 
+                { 
+                    radius: 1,   
+                }
+            );
         }) 
     }
-
-
     drawPoint(ctx, closestPoint, { radius: 3, color: 'lime' });
     let lastPoint = closestPoint
     for (const point of allPointsArray ) {
         const pointLabel = point.label.toLowerCase();
-        
-        const target = cache.retrieveResult(t).monomialSum[pointLabel]
-
+        const target = cache.retrieveResult(t).monomialSum[pointLabel];
         const endPoint = calculatePoints(target, lastPoint);
-        drawLine(ctx, lastPoint, endPoint, { color: point.color })
-
-        lastPoint = endPoint
-        
-
+        drawLine(ctx, lastPoint, endPoint, { color: point.color });
+        lastPoint = endPoint;
     }
     ctx.strokeStyle = 'black'
     

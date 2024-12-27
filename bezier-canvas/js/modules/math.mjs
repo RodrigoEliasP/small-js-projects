@@ -20,10 +20,11 @@ export const getTheClosestPointToNPoints = (...points) => {
  * 
  * @param {CartesianLocatable} a 
  * @param {CartesianLocatable} b
- * @param {'sum' | 'sub' | 'div' | 'mult'} c
+ * @param {'sum' | 'sub' | 'div' | 'mult'} operations
+ * @param {{ divisionByZeroValue: any }} options
  * @returns { CartesianLocatable } 
  */
-export const calculatePoints = (a, b, c = 'sum') => {
+export const calculatePoints = (a, b, c = 'sum', { divisionByZeroValue } = { divisionByZeroValue: undefined }) => {
     switch (c) {
         case 'sum':
             return  {
@@ -42,8 +43,8 @@ export const calculatePoints = (a, b, c = 'sum') => {
             }
         case 'div':
             return  {
-                x: b.x === 0 ? 0 : a.x / b.x,
-                y: b.y === 0 ? 0 : a.y / b.y,
+                x: b.x === 0 ? divisionByZeroValue : a.x / b.x,
+                y: b.y === 0 ? divisionByZeroValue : a.y / b.y,
             }
     
         default:

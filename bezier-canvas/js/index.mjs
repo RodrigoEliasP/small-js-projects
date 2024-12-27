@@ -21,7 +21,7 @@ if(!mainCtx || !graphingCtx) {
 }
 
 mainCtx.translate(mainCanvas.width/2, mainCanvas.height/2);
-graphingCtx.translate(graphingCanvas.width/2, graphingCanvas.height/2);
+graphingCtx.translate(graphingCanvas.width/2, graphingCanvas.height);
 
 
 
@@ -69,7 +69,9 @@ function drawInterpolatedPoint(ctx, a, b, t, cfg = {}) {
  */
 function clearCanvas(ctx, canvas) {
     ctx.fillStyle = '#dedede';
-    ctx.fillRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
+    const transform = ctx.getTransform();
+    const { m41, m42 } = transform;
+    ctx.fillRect(-m41, -m42, canvas.width, canvas.height)
 }
 
 /**
@@ -203,12 +205,6 @@ function drawCubicBezierCurvePointDeCasteljau(t) {
         drawLine(mainCtx, ABCInterpolatedPoint_2, ABDInterpolatedPoint_2);
     }
 }
-
-
-
-
-
-
 
 function drawCubicBezierCurve(t) {
     const pointToDraw = calculateCubicBezierCurvePoint(pointA, pointB, pointC, pointD, t);
