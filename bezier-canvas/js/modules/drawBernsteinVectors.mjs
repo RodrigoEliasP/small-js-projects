@@ -4,7 +4,7 @@ import { calculateCubicBezierCurvePoint } from "./math.mjs";
 import { getTheClosestPointToNPoints } from "./math.mjs";
 import { MathFunctionStore } from "./MathFunctionStore.mjs";
 import { SceneController } from "./SceneController.mjs";
-import { drawPoint } from "./utils.mjs";
+import { drawPoint, makeLogValueOnce } from "./utils.mjs";
 
 /**
  * @typedef {import("../index.mjs").CartesianLocatable} CartesianLocatable
@@ -14,6 +14,8 @@ import { drawPoint } from "./utils.mjs";
 let lastCacheId = '';
 
 const cache = new MathFunctionStore();
+
+const logOnce = makeLogValueOnce({ mode: 'cached' });
 
 /**
  * 
@@ -25,8 +27,9 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
     const closestPoint = getTheClosestPointToNPoints(...allPointsArray);
     const range = animationController.getRangesForConfiguration();
     if(lastCacheId !== JSON.stringify({...allPointsObject, ...range})) {
+        console.log('changed');
+        lastCacheId = JSON.stringify({...allPointsObject, ...range});
         cache.setConfigs((a,b,c,d, value) => {
-            console.log(value);
             return calculateCubicBezierCurvePoint(
                 calculatePoints(a, closestPoint, 'sub'), 
                 calculatePoints(b, closestPoint, 'sub'), 
@@ -37,9 +40,11 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
         cache.generateResults();
     };
     const points = cache.retrieveAllResults();
+    logOnce(points);
 
     for (const [t, dataset] of points) {
-        const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2;
+        logOnce(t);
+        const scaledT = t * graphingCanvas.width/2 - graphingCanvas.width / 4;
         Object.entries(dataset.monomialSum).forEach(([pointLabel, point]) => {
             const originPoint = allPointsObject['point' + pointLabel.toUpperCase()];
             const plotPoint = calculatePoints(
@@ -48,7 +53,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
                 "mult"
             );
             
-            drawPoint(graphingCtx, { x: scaledT, y: plotPoint.y + plotPoint. x, color: originPoint.color }, { radius: 1, showLocation: t === 100  })
+            drawPoint(graphingCtx, { x: scaledT, y: plotPoint.y + plotPoint.x, color: originPoint.color }, { radius: 1, showLocation: t === 100  })
         }) 
     }
 

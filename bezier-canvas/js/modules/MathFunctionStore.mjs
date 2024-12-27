@@ -15,7 +15,7 @@ export class MathFunctionStore {
     /**
      * @type { Map<string, ReturnType<T> }
      */ 
-    #allPoints = new Map();
+    #data = new Map();
     /**
      * @type { PointsStoreInternalFn }
      */ 
@@ -50,7 +50,7 @@ export class MathFunctionStore {
      */
     #setNewResult(value) {
         const result = this.#function(...this.#staticParams, value);
-        this.#allPoints.set(value.toString(), result);    
+        this.#data.set(value, result);    
     }
 
     generateResults() {
@@ -62,8 +62,8 @@ export class MathFunctionStore {
     }
 
     resetStore() {
-        if (this.#allPoints.size > 0) {
-            this.#allPoints.clear();
+        if (this.#data.size > 0) {
+            this.#data.clear();
         }
     }
 
@@ -72,19 +72,19 @@ export class MathFunctionStore {
      * @returns { FunctionReturn }
      */
     retrieveResult(value) {
-        let result = this.#allPoints.get(value.toString());
+        let result = this.#data.get(value);
         if (!result) {
             this.#setNewResult(value);
-            result = this.#allPoints.get(value.toString());
+            result = this.#data.get(value);
         }
         return result;
     }
 
     /**
-     * @returns { [string, FunctionReturn][] }
+     * @returns { [number, FunctionReturn][] }
      */
     retrieveAllResults() {
-        return [...this.#allPoints.entries()];
+        return [...this.#data.entries()];
     }
     
     

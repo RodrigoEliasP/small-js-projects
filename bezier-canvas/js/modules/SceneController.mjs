@@ -29,7 +29,7 @@ export class SceneController {
             break;
 
             case 'auto':
-                const maxRange = 100 * (2.25 - this.configs.animation.speed);
+                const maxRange = this.#getMaxRange();
                 this.displacement = this.displacement + (this.step * (this.going ? 1 : -1) );
                 if(this.going) {
                     this.going = this.displacement !== maxRange;
@@ -44,20 +44,24 @@ export class SceneController {
         return t;
     }
 
+    #getMaxRange() {
+        return 100 * (2.25 - this.configs.animation.speed);
+    }
+
     getRangesForConfiguration() {
         switch (this.configs.animation.type) {
             case 'man':
                 return {
                     min: 0,
-                    max: 100,
-                    step: 1
+                    max: 1,
+                    step: 0.01
                 }
             case 'auto':
-                const maxRange = 100 * (2.25 - this.configs.animation.speed);
+                const maxRange = this.#getMaxRange();
                 return {
                     min: 0,
-                    max: maxRange,
-                    step: 1
+                    max: maxRange / 100,
+                    step: 0.01
                 }
         }
     }

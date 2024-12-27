@@ -42,8 +42,8 @@ export const calculatePoints = (a, b, c = 'sum') => {
             }
         case 'div':
             return  {
-                x: a.x / b.x,
-                y: a.y / b.y,
+                x: b.x === 0 ? 0 : a.x / b.x,
+                y: b.y === 0 ? 0 : a.y / b.y,
             }
     
         default:

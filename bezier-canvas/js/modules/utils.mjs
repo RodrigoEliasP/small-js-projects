@@ -37,16 +37,24 @@ export const drawPoint = (ctx, place, options) => {
    ctx.fill();
    ctx.stroke();
 }
-
-export const makeLogValueOnce = () => {
-
-    let valueId;
-    return (value) => {
-        if(valueId === JSON.stringify(value)) {
+/**
+ * 
+ * @param {{ mode: 'single' | 'cached'}} options single will log values that does not changes, cached will log a set of values that doesn't change
+ * @returns 
+ */
+export const makeLogValueOnce = ({mode} = { mode: 'single' }) => {
+    const valuesIds = new Set();
+    return (...values) => {
+        const id = JSON.stringify(values);
+        if(valuesIds.has(id)) {
             return;
         } else {
-            valueId = JSON.stringify(value);
-            console.log(value);
+            if(mode === 'single') {
+                valuesIds.clear();
+            }
+
+            valuesIds.add(JSON.stringify(values));
+            console.log(values);
         }
     }
 }
