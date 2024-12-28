@@ -37,8 +37,8 @@ export class MathFunctionStore {
         if (this.#cacheId !== cacheId) {
             this.resetStore();
             this.#cacheId = cacheId;
-            this.generateResults()
         }
+        
         this.#function = fn;
         this.#staticParams = params;
          
@@ -47,6 +47,7 @@ export class MathFunctionStore {
         }
 
         this.#rangeOptions = rangeOptions;
+        this.generateResults()
     }
 
 
@@ -59,8 +60,6 @@ export class MathFunctionStore {
     }
 
     generateResults() {
-        this.resetStore();
-
         for (let i = this.#rangeOptions.min; i <= this.#rangeOptions.max; i += this.#rangeOptions.step) {
             this.#setNewResult(i);
         }

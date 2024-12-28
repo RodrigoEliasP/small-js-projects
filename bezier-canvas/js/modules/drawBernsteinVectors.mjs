@@ -43,6 +43,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
             calculatePoints(d, closestPoint, 'sub'),
         value);
     }, params: allPointsArray }, range);
+
     const points = cache.retrieveAllResults();
 
     let lastSums = {
@@ -104,8 +105,8 @@ function getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas) {
     const weightedSumRatio = calculatePoints(point, pointWithOffset, 'div', { divisionByZeroValue: 0.001 });
     const scaledPoint = calculatePoints(
         weightedSumRatio,
-        { x: -graphingCanvas.height, y: -graphingCanvas.height },
+        { x: graphingCanvas.height/2, y: graphingCanvas.height/2 },
         "mult"
     );
-    return scaledPoint;
+    return { x: Math.abs(scaledPoint.x), y: Math.abs(scaledPoint.y) };
 }
