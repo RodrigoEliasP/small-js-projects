@@ -246,7 +246,6 @@ function draw(t, animationController) {
     }
 
     if(flags.showBernstein) {
-        
         drawBernsteinVectors(mainCtx, { ctx: graphingCtx, canvas: graphingCanvas }, { t, allPointsArray, allPointsObject, animationController });
     }
 

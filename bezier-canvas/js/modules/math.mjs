@@ -119,13 +119,15 @@ export const lerp = (a, b, t) => {
  * @param {CanvasRenderingContext2D} ctx 
  * @param {CartesianLocatable} a
  * @param {CartesianLocatable} b
- * @param {{ color: string }} options
+ * @param {{ color: string; lineWidth: number; }} options
  * 
  */
-export const drawLine = (ctx, a, b, { color = 'black' } = {}) => {
+export const drawLine = (ctx, a, b, { color, lineWidth = 1  } = { }) => {
+    ctx.lineWidth = lineWidth;
     ctx.beginPath();
     ctx.strokeStyle = color
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
+    ctx.lineWidth = 1; 
 }

@@ -13,13 +13,14 @@ export class MathFunctionStore {
 
     
     /**
-     * @type { Map<string, ReturnType<T> }
+     * @type { Map<number, ReturnType<T> }
      */ 
     #data = new Map();
     /**
      * @type { PointsStoreInternalFn }
      */ 
     #function;
+    #cacheId;
     #staticParams;
     #rangeOptions;
 
@@ -28,16 +29,20 @@ export class MathFunctionStore {
      * takes an arbitrary fn function, with its static params and generate all values within the range specified on the options
      * it assumes that the variable param is the last function argument, ex: fn(a,b,c,d,t) the t will receive the variable param calculated
      * 
-     * @param { PointsStoreInternalFn } fn the function to be cached
-     * @param { FunctionParams } staticParams the static params for the functions
+     * @param { { fn: PointsStoreInternalFn, params: FunctionParams } } fn the function to be cached
      * @param {{ min: number; max: number; step: number }} rangeOptions the range options for the variable param for the function
      */
-    setConfigs(fn, functionParams, rangeOptions) {
-        this.resetStore();
+    setConfigs({ fn, params }, rangeOptions) {
+        const cacheId = JSON.stringify({ params, rangeOptions });
+        if (this.#cacheId !== cacheId) {
+            this.resetStore();
+            this.#cacheId = cacheId;
+            this.generateResults()
+        }
         this.#function = fn;
-        this.#staticParams = functionParams;
+        this.#staticParams = params;
          
-        if (functionParams.length + 1 !== fn.length) {
+        if (params.length + 1 !== fn.length) {
             throw new Error('Wrong usage, functionParams should not provide the variable param')
         }
 
@@ -84,7 +89,7 @@ export class MathFunctionStore {
      * @returns { [number, FunctionReturn][] }
      */
     retrieveAllResults() {
-        return [...this.#data.entries()];
+        return [...this.#data.entries()].sort(([a, _d], [b , _] ) => a-b);
     }
     
     

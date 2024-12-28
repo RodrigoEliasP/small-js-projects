@@ -13,7 +13,7 @@ export const configs = {
      * @type {{ type: 'man', displacement: number; } | { type: 'auto', speed: number; }}
      */
     animation: {
-        type: 'auto',
+        type: 'man',
         speed: 1
     }
 };
@@ -93,7 +93,7 @@ function changeAnimationMode(mode) {
  */
 const animationMode = document.querySelector("#animationMode");
 
-changeAnimationMode('auto');
+changeAnimationMode('man');
 
 animationMode.addEventListener('change', (e) => {
     changeAnimationMode(e.target.value);
