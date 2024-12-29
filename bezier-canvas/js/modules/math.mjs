@@ -6,7 +6,7 @@
  * 
  * @param  {...CartesianLocatable} points 
  */
-export const getTheClosestPointToNPoints = (...points) => {
+export const calculateTheClosestPointToNPoints = (...points) => {
     const totalPoints = points.length;
 
     return points.reduce((acc, cur) => { 
@@ -16,16 +16,28 @@ export const getTheClosestPointToNPoints = (...points) => {
     }, {x: 0, y: 0})
 }
 
+
 /**
  * 
  * @param {CartesianLocatable} a 
  * @param {CartesianLocatable} b
- * @param {'sum' | 'sub' | 'div' | 'mult'} operations
+ * @returns {number}
+ */
+export const calculateDistanceBetweenPoints = (a, b) => {
+    const difference = operateOnPoints(a, b, 'sub');
+    return Math.sqrt((difference.x ** 2) + (difference.y ** 2))
+};
+
+/**
+ * 
+ * @param {CartesianLocatable} a 
+ * @param {CartesianLocatable} b
+ * @param {'sum' | 'sub' | 'div' | 'mult'} operation
  * @param {{ divisionByZeroValue: any }} options
  * @returns { CartesianLocatable } 
  */
-export const calculatePoints = (a, b, c = 'sum', { divisionByZeroValue } = { divisionByZeroValue: undefined }) => {
-    switch (c) {
+export const operateOnPoints = (a, b, operation = 'sum', { divisionByZeroValue } = { divisionByZeroValue: undefined }) => {
+    switch (operation) {
         case 'sum':
             return  {
                 x: a.x + b.x,
@@ -122,7 +134,7 @@ export const lerp = (a, b, t) => {
  * @param {{ color: string; lineWidth: number; }} options
  * 
  */
-export const drawLine = (ctx, a, b, { color, lineWidth = 1  } = { }) => {
+export const drawLine = (ctx, a, b, { color = 'black', lineWidth = 1  } = { }) => {
     ctx.lineWidth = lineWidth;
     ctx.beginPath();
     ctx.strokeStyle = color

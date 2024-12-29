@@ -1,7 +1,7 @@
-import { calculatePoints } from "./math.mjs";
+import { calculateDistanceBetweenPoints, operateOnPoints } from "./math.mjs";
 import { drawLine } from "./math.mjs";
 import { calculateCubicBezierCurvePoint } from "./math.mjs";
-import { getTheClosestPointToNPoints } from "./math.mjs";
+import { calculateTheClosestPointToNPoints } from "./math.mjs";
 import { MathFunctionStore } from "./MathFunctionStore.mjs";
 import { SceneController } from "./SceneController.mjs";
 import { drawPoint, makeLogValueOnce } from "./utils.mjs";
@@ -24,7 +24,8 @@ const logOnce = makeLogValueOnce({ mode: 'cached' });
  * @param { { t: number;  allPointsArray: ColorizedCartesianLocatable[]; allPointsObject: { [x in `point${'A'|'B'|'C'|'D'}`]: ColorizedCartesianLocatable }; animationController: SceneController } }
 */
 export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCanvas }, { t, allPointsObject, allPointsArray , animationController }) {
-    const closestPoint = getTheClosestPointToNPoints(...allPointsArray);
+    graphingCtx.setTransform(1,0,0, 1, graphingCanvas.width/2, graphingCanvas.height);
+    const closestPoint = calculateTheClosestPointToNPoints(...allPointsArray);
     const range = animationController.getRangesForConfiguration();
 
     const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2
@@ -37,10 +38,10 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
     );
     cache.setConfigs({ fn: (a,b,c,d, value) => {
         return calculateCubicBezierCurvePoint(
-            calculatePoints(a, closestPoint, 'sub'), 
-            calculatePoints(b, closestPoint, 'sub'), 
-            calculatePoints(c, closestPoint, 'sub'), 
-            calculatePoints(d, closestPoint, 'sub'),
+            operateOnPoints(a, closestPoint, 'sub'), 
+            operateOnPoints(b, closestPoint, 'sub'), 
+            operateOnPoints(c, closestPoint, 'sub'), 
+            operateOnPoints(d, closestPoint, 'sub'),
         value);
     }, params: allPointsArray }, range);
 
@@ -54,8 +55,8 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
         d: undefined,
         lastScaledT: undefined,
     };
-    for (const [t, dataset] of points) {
-        const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2;
+    for (const [innerT, dataset] of points) {
+        const scaledT = innerT * graphingCanvas.width - graphingCanvas.width / 2;
         if (lastSums.state === 'empty') {
             lastSums = { state: 'filled', ...dataset.monomialSum, lastScaledT: scaledT };
             continue;
@@ -65,9 +66,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
             const lastPoint = lastSums[pointLabel]
             
             const lastWeightedSumPoints = getWeightedSumPoint(originPoint, closestPoint, lastPoint, graphingCanvas);
-            const weightedSumPoint = getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas);
-            
-            logOnce(lastWeightedSumPoints, weightedSumPoint);
+            const weightedSumPoint = getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas, t === innerT && 'D');
 
             drawLine(
                 graphingCtx, 
@@ -91,7 +90,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
     for (const point of allPointsArray ) {
         const pointLabel = point.label.toLowerCase();
         const target = cache.retrieveResult(t).monomialSum[pointLabel];
-        const endPoint = calculatePoints(target, lastPoint);
+        const endPoint = operateOnPoints(target, lastPoint);
         drawLine(ctx, lastPoint, endPoint, { color: point.color });
         lastPoint = endPoint;
     }
@@ -100,12 +99,15 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
 
 }
 
-function getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas) {
-    const pointWithOffset = calculatePoints(originPoint, closestPoint);
-    const weightedSumRatio = calculatePoints(point, pointWithOffset, 'div', { divisionByZeroValue: 0.001 });
-    const scaledPoint = calculatePoints(
-        weightedSumRatio,
-        { x: graphingCanvas.height/2, y: graphingCanvas.height/2 },
+function getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas, debug) {
+    const originPointWithOffset = operateOnPoints(originPoint, closestPoint);
+    const weightedSumRatio = operateOnPoints(point, originPointWithOffset, 'div', { divisionByZeroValue: 0.001 });
+    if( originPoint.label === debug ) {
+        logOnce(originPoint, closestPoint, point, originPointWithOffset, weightedSumRatio)
+    }
+    const scaledPoint = operateOnPoints(
+        { x: weightedSumRatio },
+        { x: graphingCanvas.height, y: graphingCanvas.height },
         "mult"
     );
     return { x: Math.abs(scaledPoint.x), y: Math.abs(scaledPoint.y) };

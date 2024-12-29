@@ -1,6 +1,6 @@
 import { configs, flags } from "./modules/configs.mjs"
 import { drawBernsteinVectors } from "./modules/drawBernsteinVectors.mjs";
-import { calculateCubicBezierCurvePoint, drawLine, lerp } from "./modules/math.mjs";
+import { calculateCubicBezierCurvePoint, calculateDistanceBetweenPoints, drawLine, lerp } from "./modules/math.mjs";
 import { SceneController } from "./modules/SceneController.mjs";
 import { drawPoint, makeLogValueOnce } from "./modules/utils.mjs";
 /**
@@ -21,7 +21,6 @@ if(!mainCtx || !graphingCtx) {
 }
 
 mainCtx.translate(mainCanvas.width/2, mainCanvas.height/2);
-graphingCtx.translate(graphingCanvas.width/2, graphingCanvas.height);
 
 
 
@@ -121,10 +120,8 @@ const allPointsObject = { pointA, pointB, pointC, pointD };
 function findPointColiding(points, place) {
     for (let i = 0; i < points.length; i++) {
         const point = points[i];
-        const xDiff = (place.x - point.x);
-        const yDiff = (place.y - point.y); 
-        const hypotenuse = Math.sqrt((xDiff ** 2) + (yDiff ** 2))
-        if (hypotenuse > 20) {
+        const distance = calculateDistanceBetweenPoints(place, point);
+        if (distance > 20) {
             continue;
         }
         return point;
