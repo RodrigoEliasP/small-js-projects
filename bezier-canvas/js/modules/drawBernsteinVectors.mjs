@@ -28,8 +28,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
     const closestPoint = calculateTheClosestPointToNPoints(...allPointsArray);
     const range = animationController.getRangesForConfiguration();
 
-    const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2
-    
+    const scaledT = t * graphingCanvas.width - graphingCanvas.width / 2;
     drawLine(
         graphingCtx, 
         { x: scaledT, y: graphingCanvas.height/2 },
@@ -66,18 +65,20 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
             const lastPoint = lastSums[pointLabel]
             
             const lastWeightedSumPoints = getWeightedSumPoint(originPoint, closestPoint, lastPoint, graphingCanvas);
-            const weightedSumPoint = getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas, t === innerT && 'D');
-
+            const weightedSumPoint = getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas);
+            
+            const firstPoint = { 
+                x: lastSums.lastScaledT, 
+                y: -Math.abs((lastWeightedSumPoints.y + lastWeightedSumPoints.x) * graphingCanvas.height),
+            }
+            const endPoint = { 
+                x: scaledT, 
+                y: -Math.abs(weightedSumPoint.y + weightedSumPoint.x),
+            }
             drawLine(
                 graphingCtx, 
-                { 
-                    x: lastSums.lastScaledT, 
-                    y: -Math.abs(lastWeightedSumPoints.y + lastWeightedSumPoints.x),
-                },
-                { 
-                    x: scaledT, 
-                    y: -Math.abs(weightedSumPoint.y + weightedSumPoint.x),
-                },
+                firstPoint,
+                endPoint,
                 {
                     color: originPoint.color 
                 }
@@ -102,13 +103,13 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
 function getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas, debug) {
     const originPointWithOffset = operateOnPoints(originPoint, closestPoint);
     const weightedSumRatio = operateOnPoints(point, originPointWithOffset, 'div', { divisionByZeroValue: 0.001 });
-    if( originPoint.label === debug ) {
-        logOnce(originPoint, closestPoint, point, originPointWithOffset, weightedSumRatio)
-    }
     const scaledPoint = operateOnPoints(
-        { x: weightedSumRatio },
+        { ...weightedSumRatio },
         { x: graphingCanvas.height, y: graphingCanvas.height },
         "mult"
     );
+    if( originPoint.label === debug ) {
+        logOnce({originPoint, closestPoint, point, originPointWithOffset, weightedSumRatio, scaledPoint, height: graphingCanvas.height })
+    }
     return { x: Math.abs(scaledPoint.x), y: Math.abs(scaledPoint.y) };
 }
