@@ -30,33 +30,35 @@ export const calculateDistanceBetweenPoints = (a, b) => {
 
 /**
  * 
- * @param {CartesianLocatable} a 
- * @param {CartesianLocatable} b
+ * @param {CartesianLocatable} newA 
+ * @param {CartesianLocatable} newB
  * @param {'sum' | 'sub' | 'div' | 'mult'} operation
  * @param {{ divisionByZeroValue: any }} options
  * @returns { CartesianLocatable } 
  */
 export const operateOnPoints = (a, b, operation = 'sum', { divisionByZeroValue } = { divisionByZeroValue: undefined }) => {
+    const newA = typeof a === 'number' ? { x: a, y: a } : a;
+    const newB = typeof b === 'number' ? { x: b, y: b } : b;
     switch (operation) {
         case 'sum':
             return  {
-                x: a.x + b.x,
-                y: a.y + b.y,
+                x: newA.x + newB.x,
+                y: newA.y + newB.y,
             }
         case 'sub':
             return  {
-                x: a.x - b.x,
-                y: a.y - b.y,
+                x: newA.x - newB.x,
+                y: newA.y - newB.y,
             }
         case 'mult':
             return  {
-                x: a.x * b.x,
-                y: a.y * b.y,
+                x: newA.x * newB.x,
+                y: newA.y * newB.y,
             }
         case 'div':
             return  {
-                x: b.x === 0 ? divisionByZeroValue : a.x / b.x,
-                y: b.y === 0 ? divisionByZeroValue : a.y / b.y,
+                x: newB.x === 0 ? divisionByZeroValue : newA.x / newB.x,
+                y: newB.y === 0 ? divisionByZeroValue : newA.y / newB.y,
             }
     
         default:
