@@ -70,11 +70,11 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
                 x: lastSums.lastScaledT, 
                 y: -Math.abs((lastWeightedSumPoints.y + lastWeightedSumPoints.x) * graphingCanvas.height),
             }
-            logOnce({lastPoint, lastWeightedSumPoints, firstPoint});
             const endPoint = { 
                 x: scaledT, 
-                y: -Math.abs(weightedSumPoint.y + weightedSumPoint.x),
+                y: -Math.abs(weightedSumPoint.y + weightedSumPoint.x) * graphingCanvas.height,
             }
+            logOnce({lastPoint, lastWeightedSumPoints, firstPoint, endPoint});
             drawLine(
                 graphingCtx, 
                 firstPoint,
