@@ -1,5 +1,6 @@
 import { configs, flags } from "./modules/configs.mjs"
 import { drawBernsteinVectors } from "./modules/drawBernsteinVectors.mjs";
+import { drawIndicator } from "./modules/drawIndicator.mjs";
 import { calculateCubicBezierCurvePoint, calculateDistanceBetweenPoints, drawLine, lerp } from "./modules/math.mjs";
 import { SceneController } from "./modules/SceneController.mjs";
 import { drawPoint, makeLogValueOnce } from "./modules/utils.mjs";
@@ -98,13 +99,21 @@ const pointD = { x: 100, y: 0, label: 'D', color: 'purple' };
 
 
 let mousePoint = {};
+let graphingCanvasMousePoint = {};
 
-const getActualMousePlacement = (e) => {
-    let rect = mainCanvas.getBoundingClientRect();
+/**
+ * 
+ * @param {HTMLCanvasElement} canvas 
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {MouseEvent} e 
+ * @returns 
+ */
+const getActualMousePlacement = (canvas, ctx, e) => {
+    let rect = canvas.getBoundingClientRect();
+    const matrix = ctx.getTransform();
     const padding = -8;
-    const { width, height } = mainCanvas;
     const { clientX: canvasX, clientY: canvasY } = e;
-    const [ actualX, actualY ] = [canvasX - ((width / 2) + rect.left + padding), canvasY - ((height / 2) + rect.top + padding)];
+    const [ actualX, actualY ] = [canvasX - rect.left  - matrix.e - padding, canvasY - rect.top - matrix.f - padding];
     return { x: actualX, y: actualY };
 }
 
@@ -131,7 +140,7 @@ function findPointColiding(points, place) {
 let draggingPoint = undefined;
 
 mainCanvas.addEventListener('mousemove', (e)  => {
-    const actualPlacement = getActualMousePlacement(e);
+    const actualPlacement = getActualMousePlacement(mainCanvas, mainCtx, e);
     mousePoint.x = actualPlacement.x - 9;
     mousePoint.y = actualPlacement.y - 9;
 
@@ -143,7 +152,7 @@ mainCanvas.addEventListener('mousemove', (e)  => {
 })
 
 mainCanvas.addEventListener('mousedown', (e) => {
-    const placement = getActualMousePlacement(e);
+    const placement = getActualMousePlacement(mainCanvas, mainCtx, e);
 
     let pointColiding = findPointColiding(allPointsArray, placement);
 
@@ -156,6 +165,13 @@ mainCanvas.addEventListener('mousedown', (e) => {
 mainCanvas.addEventListener('mouseup', (e) => {
     draggingPoint = undefined;
 });
+
+graphingCanvas.addEventListener('mousemove', (e)  => {
+    const actualPlacement = getActualMousePlacement(graphingCanvas, graphingCtx, e);
+    graphingCanvasMousePoint.x = actualPlacement.x - 9;
+    graphingCanvasMousePoint.y = actualPlacement.y - 9;
+    
+})
 
 function drawCubicBezierCurvePointDeCasteljau(t) {
     const BCInterpolatedPoint_1 = calculateInterpolatedPoint(pointB, pointC, t);
@@ -238,9 +254,8 @@ function draw(t, animationController) {
         drawAxisLines(mainCtx);
     }
 
-    if(mousePoint.x && flags.showPointerIndicator) {
-        drawPoint(mainCtx, mousePoint, { radius: 3, color: 'red', showLocation: false  })
-    }
+    drawIndicator(mainCtx, mousePoint);
+    drawIndicator(graphingCtx, graphingCanvasMousePoint);
 
     if(flags.showBernstein) {
         drawBernsteinVectors(mainCtx, { ctx: graphingCtx, canvas: graphingCanvas }, { t, allPointsArray, allPointsObject, animationController });

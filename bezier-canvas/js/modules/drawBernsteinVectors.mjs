@@ -66,11 +66,11 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
             
             const lastWeightedSumPoints = getWeightedSumPoint(originPoint, closestPoint, lastPoint, graphingCanvas);
             const weightedSumPoint = getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas);
-            
             const firstPoint = { 
                 x: lastSums.lastScaledT, 
                 y: -Math.abs((lastWeightedSumPoints.y + lastWeightedSumPoints.x) * graphingCanvas.height),
             }
+            logOnce({lastPoint, lastWeightedSumPoints, firstPoint});
             const endPoint = { 
                 x: scaledT, 
                 y: -Math.abs(weightedSumPoint.y + weightedSumPoint.x),
@@ -105,7 +105,7 @@ function getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas, d
     const weightedSumRatio = operateOnPoints(point, originPointWithOffset, 'div', { divisionByZeroValue: 0.001 });
     const scaledPoint = operateOnPoints(
         { ...weightedSumRatio },
-        { x: graphingCanvas.height, y: graphingCanvas.height },
+        { x: 1, y: 1 },
         "mult"
     );
     if( originPoint.label === debug ) {
