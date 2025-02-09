@@ -11,11 +11,7 @@ import { drawPoint, makeLogValueOnce } from "./utils.mjs";
  * @typedef { import("../index.mjs").ColorizedCartesianLocatable } ColorizedCartesianLocatable
  */
 
-let lastCacheId = '';
-
 const cache = new MathFunctionStore();
-
-const logOnce = makeLogValueOnce({ mode: 'cached' });
 
 /**
  * 
@@ -77,7 +73,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
             const originPoint = allPointsObject['point' + pointLabel.toUpperCase()];
             const lastPoint = lastSums.dataset.monomialSum[pointLabel];
             
-            const lastWeightedSumPoints = getWeightedSumPoint(lastPoint, lastSums.absoluteSum, graphingCanvas, originPoint.label === 'D');
+            const lastWeightedSumPoints = getWeightedSumPoint(lastPoint, lastSums.absoluteSum, graphingCanvas);
             const weightedSumPoint = getWeightedSumPoint(point, absoluteSum, graphingCanvas);
             const firstPoint = { 
                 x: lastSums.lastScaledT, 
@@ -112,7 +108,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
 
 }
 
-function getWeightedSumPoint(summedPoint, point, graphingCanvas, debug) {
+function getWeightedSumPoint(summedPoint, point, graphingCanvas) {
     const absoluteSummedPoint = { x: Math.abs(summedPoint.x), y: Math.abs(summedPoint.y)};
     const absolutePoint = { x: Math.abs(point.x), y: Math.abs(point.y)};
     const weightedSumRatio = operateOnPoints(operateOnPoints(absoluteSummedPoint, 100, "mult"), absolutePoint, 'div', { divisionByZeroValue: 'ignore' });
@@ -121,8 +117,5 @@ function getWeightedSumPoint(summedPoint, point, graphingCanvas, debug) {
         { x: graphingCanvas.height, y: graphingCanvas.height },
         "div"
     );
-    if( summedPoint.label === debug ) {
-        logOnce({ summedPoint, point, weightedSumRatio, scaledPoint, height: graphingCanvas.height })
-    }
     return { x: Math.abs(scaledPoint.x), y: Math.abs(scaledPoint.y) };
 }
