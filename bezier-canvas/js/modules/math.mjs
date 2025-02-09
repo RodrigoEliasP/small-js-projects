@@ -33,10 +33,10 @@ export const calculateDistanceBetweenPoints = (a, b) => {
  * @param {CartesianLocatable} newA 
  * @param {CartesianLocatable} newB
  * @param {'sum' | 'sub' | 'div' | 'mult'} operation
- * @param {{ divisionByZeroValue: any }} options
+ * @param {{ divisionByZeroValue: 'error' | 'ignore' }} options
  * @returns { CartesianLocatable } 
  */
-export const operateOnPoints = (a, b, operation = 'sum', { divisionByZeroValue } = { divisionByZeroValue: undefined }) => {
+export const operateOnPoints = (a, b, operation = 'sum', { divisionByZeroValue } = { divisionByZeroValue: 'error' }) => {
     const newA = typeof a === 'number' ? { x: a, y: a } : a;
     const newB = typeof b === 'number' ? { x: b, y: b } : b;
     switch (operation) {
@@ -56,6 +56,13 @@ export const operateOnPoints = (a, b, operation = 'sum', { divisionByZeroValue }
                 y: newA.y * newB.y,
             }
         case 'div':
+            if(newB.x && newB.y === 0) {
+                if(divisionByZeroValue === 'error') {
+                    throw Error('division by zero cannot be performed on operateOnPoints');
+                } else {
+                    return newA;
+                }
+            }
             return  {
                 x: newB.x === 0 ? divisionByZeroValue : newA.x / newB.x,
                 y: newB.y === 0 ? divisionByZeroValue : newA.y / newB.y,

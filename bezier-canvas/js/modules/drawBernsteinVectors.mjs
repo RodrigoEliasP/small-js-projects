@@ -48,24 +48,37 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
 
     let lastSums = {
         state: 'empty',
-        a: undefined,
-        b: undefined,
-        c: undefined,
-        d: undefined,
+        absoluteSum: undefined,
+        dataset: { 
+            x: undefined, 
+            y: undefined, 
+
+            monomialSum: {
+                a: undefined, 
+                b: undefined, 
+                c: undefined, 
+                d: undefined,
+            } 
+        },
         lastScaledT: undefined,
     };
     for (const [innerT, dataset] of points) {
         const scaledT = innerT * graphingCanvas.width - graphingCanvas.width / 2;
+        const absoluteSum = Object.values(dataset.monomialSum).reduce((acc,cur) => {
+            acc.x += Math.abs(cur.x);
+            acc.y += Math.abs(cur.y);
+            return acc;
+        }, { x: 0, y: 0 });
         if (lastSums.state === 'empty') {
-            lastSums = { state: 'filled', ...dataset.monomialSum, lastScaledT: scaledT };
+            lastSums = { state: 'filled', dataset, lastScaledT: scaledT, absoluteSum };
             continue;
         }
         Object.entries(dataset.monomialSum).forEach(([pointLabel, point]) => {
             const originPoint = allPointsObject['point' + pointLabel.toUpperCase()];
-            const lastPoint = lastSums[pointLabel]
+            const lastPoint = lastSums.dataset.monomialSum[pointLabel];
             
-            const lastWeightedSumPoints = getWeightedSumPoint(originPoint, closestPoint, lastPoint, graphingCanvas);
-            const weightedSumPoint = getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas);
+            const lastWeightedSumPoints = getWeightedSumPoint(lastPoint, lastSums.absoluteSum, graphingCanvas, originPoint.label === 'D');
+            const weightedSumPoint = getWeightedSumPoint(point, absoluteSum, graphingCanvas);
             const firstPoint = { 
                 x: lastSums.lastScaledT, 
                 y: -Math.abs((lastWeightedSumPoints.y + lastWeightedSumPoints.x) * graphingCanvas.height),
@@ -74,7 +87,6 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
                 x: scaledT, 
                 y: -Math.abs(weightedSumPoint.y + weightedSumPoint.x) * graphingCanvas.height,
             }
-            logOnce({lastPoint, lastWeightedSumPoints, firstPoint, endPoint});
             drawLine(
                 graphingCtx, 
                 firstPoint,
@@ -84,7 +96,7 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
                 }
             );
         }) 
-        lastSums = { state: 'filled', ...dataset.monomialSum, lastScaledT: scaledT };
+        lastSums = { state: 'filled', dataset, lastScaledT: scaledT, absoluteSum };
     }
     drawPoint(ctx, closestPoint, { radius: 3, color: 'lime' });
     let lastPoint = closestPoint
@@ -100,16 +112,17 @@ export function drawBernsteinVectors(ctx, { ctx: graphingCtx, canvas: graphingCa
 
 }
 
-function getWeightedSumPoint(originPoint, closestPoint, point, graphingCanvas, debug) {
-    const originPointWithOffset = operateOnPoints(originPoint, closestPoint);
-    const weightedSumRatio = operateOnPoints(point, originPointWithOffset, 'div', { divisionByZeroValue: 0.001 });
+function getWeightedSumPoint(summedPoint, point, graphingCanvas, debug) {
+    const absoluteSummedPoint = { x: Math.abs(summedPoint.x), y: Math.abs(summedPoint.y)};
+    const absolutePoint = { x: Math.abs(point.x), y: Math.abs(point.y)};
+    const weightedSumRatio = operateOnPoints(operateOnPoints(absoluteSummedPoint, 100, "mult"), absolutePoint, 'div', { divisionByZeroValue: 'ignore' });
     const scaledPoint = operateOnPoints(
         { ...weightedSumRatio },
-        { x: 1, y: 1 },
-        "mult"
+        { x: graphingCanvas.height, y: graphingCanvas.height },
+        "div"
     );
-    if( originPoint.label === debug ) {
-        logOnce({originPoint, closestPoint, point, originPointWithOffset, weightedSumRatio, scaledPoint, height: graphingCanvas.height })
+    if( summedPoint.label === debug ) {
+        logOnce({ summedPoint, point, weightedSumRatio, scaledPoint, height: graphingCanvas.height })
     }
     return { x: Math.abs(scaledPoint.x), y: Math.abs(scaledPoint.y) };
 }
