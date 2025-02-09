@@ -83,6 +83,7 @@ function drawAxisLines(ctx) {
     const { width, height } = mainCanvas;
     ctx.beginPath();
     ctx.fillStyle = "black";
+    ctx.strokeStyle = 'black';
     ctx.moveTo(-(width / 2), 0);
     ctx.lineTo(width / 2, 0);
     ctx.moveTo(0, -(height / 2));
@@ -229,6 +230,7 @@ function drawBezierCurve() {
         return
     }
     mainCtx.fillStyle = 'black'; 
+    mainCtx.strokeStyle = 'black';
     mainCtx.moveTo(pointA.x, pointA.y);
     mainCtx.bezierCurveTo(pointB.x, pointB.y, pointC.x, pointC.y, pointD.x, pointD.y)
     mainCtx.stroke();
@@ -269,11 +271,12 @@ function draw(t, animationController) {
 
     drawBezierCurve();
 
-    drawCubicBezierCurvePointDeCasteljau(t);
     //drawCubicBezierCurvePointSingleFunction(t);
     allPointsArray.forEach(point => {
         drawPoint(mainCtx, point, { label: flags.showLabels && point.label });
     })
+    drawCubicBezierCurvePointDeCasteljau(t);
+
 }
 
 const animationController = new SceneController(configs);

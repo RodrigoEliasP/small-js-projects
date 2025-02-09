@@ -151,4 +151,5 @@ export const drawLine = (ctx, a, b, { color = 'black', lineWidth = 1  } = { }) =
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
     ctx.lineWidth = 1; 
+    ctx.strokeStyle = 'black';
 }
